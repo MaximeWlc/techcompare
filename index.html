@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TechCompare — Comparez les meilleurs prix tech</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0A0A0A;--bg2:#111;--bg3:#1A1A1A;--bg4:#222;--bd:rgba(255,255,255,.08);--bd2:rgba(255,255,255,.14);--acc:#FF4F1F;--acc2:#FF7A45;--gold:#FFB800;--wh:#F5F5F0;--gr:#AAA;--gr2:#666;--gr3:#333;--gn:#4CAF50;--gn2:#81C784;--fd:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--r:12px;--r2:20px}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--wh);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.hidden{display:none!important}
+.page{display:none;padding-top:62px;min-height:100vh}
+.page.on{display:block}
+button,input,select{font-family:var(--fb)}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--gr3);border-radius:3px}
+
+/* NAV */
+#nav{position:fixed;inset:0 0 auto;z-index:200;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;background:rgba(10,10,10,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--bd)}
+.nav-logo{font-family:var(--fd);font-size:19px;font-weight:800;cursor:pointer}
+.nav-logo b{color:var(--acc)}
+.nav-links{display:flex;gap:4px}
+.nav-links button{background:none;border:none;color:var(--gr);font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;cursor:pointer;transition:.15s}
+.nav-links button:hover,.nav-links button.act{color:#fff;background:rgba(255,255,255,.07)}
+.nav-right{display:flex;align-items:center;gap:10px}
+#nav-back{display:none;align-items:center;gap:6px;background:none;border:1px solid var(--bd2);color:var(--gr);font-size:12px;font-weight:500;padding:6px 14px;border-radius:999px;cursor:pointer;transition:.15s}
+#nav-back:hover{color:#fff}
+#nav-bc{display:none;align-items:center;gap:6px;font-size:12px;color:var(--gr2)}
+#nav-bc span{color:var(--gr)}
+#nav-bc b{color:var(--wh)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:999px;cursor:pointer;transition:.2s;font-weight:600;font-family:var(--fb)}
+.btn-or{background:var(--acc);color:#fff;padding:11px 24px;font-size:13px;box-shadow:0 4px 20px rgba(255,79,31,.3)}
+.btn-or:hover{background:var(--acc2);transform:translateY(-1px)}
+.btn-gh{background:rgba(255,255,255,.07);color:var(--wh);border:1px solid var(--bd2);padding:10px 20px;font-size:13px}
+.btn-gh:hover{background:rgba(255,255,255,.13)}
+
+/* HOME HERO */
+#hero{min-height:calc(100vh - 62px);display:flex;flex-direction:column;justify-content:center;padding:0 80px 60px;position:relative;overflow:hidden}
+.h-glow{position:absolute;inset:0;background:radial-gradient(ellipse 55% 65% at 72% 40%,rgba(255,79,31,.13),transparent 68%),radial-gradient(ellipse 30% 35% at 90% 10%,rgba(255,184,0,.07),transparent 55%);pointer-events:none}
+.h-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:56px 56px;pointer-events:none}
+.live-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,79,31,.1);border:1px solid rgba(255,79,31,.28);border-radius:999px;padding:5px 14px;font-size:11px;color:#FF9070;font-weight:700;margin-bottom:24px;letter-spacing:.4px}
+.live-badge::before{content:'';width:6px;height:6px;background:var(--acc);border-radius:50%;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.h1{font-family:var(--fd);font-size:clamp(38px,6vw,80px);font-weight:800;line-height:1.05;letter-spacing:-2px;color:#fff}
+.h1 b{color:var(--acc)}
+.h-sub{font-size:16px;color:#BBB;max-width:480px;line-height:1.65;margin-top:16px;font-weight:300}
+.h-btns{display:flex;gap:12px;margin:32px 0 60px;flex-wrap:wrap}
+.h-stats{display:flex;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
+.hst{padding:16px 30px;text-align:center;border-right:1px solid var(--bd);background:rgba(255,255,255,.02)}
+.hst:last-child{border-right:none}
+.hst-v{font-family:var(--fd);font-size:24px;font-weight:800;color:#fff;display:block}
+.hst-l{font-size:11px;color:var(--gr);margin-top:1px}
+
+/* TICKER */
+.ticker-w{overflow:hidden;padding:18px 0;border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);background:rgba(255,255,255,.018);margin:52px 0}
+.ticker{display:flex;gap:48px;animation:tick 30s linear infinite;white-space:nowrap}
+.ti{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gr);flex-shrink:0}
+.ti::before{content:'';width:5px;height:5px;background:var(--acc);border-radius:50%;flex-shrink:0}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* HOME SECTIONS */
+.hsec{max-width:1200px;margin:0 auto;padding:60px 48px}
+.stag{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--acc);font-weight:700;margin-bottom:10px}
+.h2{font-family:var(--fd);font-size:clamp(26px,3.5vw,44px);font-weight:800;line-height:1.1;letter-spacing:-1px;color:#fff}
+
+/* DEALS */
+.d-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+.dc{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:18px;cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.dc::after{content:'';position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,var(--acc),var(--gold));transform:scaleX(0);transform-origin:left;transition:.3s}
+.dc:hover{border-color:rgba(255,79,31,.3);transform:translateY(-3px)}
+.dc:hover::after{transform:scaleX(1)}
+.dc-em{font-size:30px;margin-bottom:10px;display:block}
+.dc-br{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--gr2);margin-bottom:3px}
+.dc-n{font-family:var(--fd);font-size:14px;font-weight:700;color:#fff;margin-bottom:12px;line-height:1.25}
+.dc-rows{border-top:1px solid var(--bd);padding-top:9px;display:flex;flex-direction:column;gap:5px}
+.dc-row{display:flex;justify-content:space-between;font-size:12px}
+.dc-sh{color:var(--gr2)}
+.p-best{color:var(--gn2);font-weight:700}
+.p-hi{color:var(--gr2)}
+.eco-pill{display:inline-block;background:rgba(76,175,80,.12);color:var(--gn2);border:1px solid rgba(76,175,80,.18);font-size:11px;padding:3px 9px;border-radius:999px;font-weight:700;margin-top:9px}
+
+/* FEATURES */
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden}
+.fi{padding:28px;background:var(--bg3);border-right:1px solid var(--bd)}
+.fi:last-child{border-right:none}
+.fi-ico{width:40px;height:40px;background:rgba(255,79,31,.1);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:13px}
+.fi-t{font-family:var(--fd);font-size:15px;font-weight:700;color:#fff;margin-bottom:5px}
+.fi-d{font-size:12px;color:var(--gr);line-height:1.6}
+
+/* BRANDS */
+.br-row{display:flex;gap:10px;flex-wrap:wrap}
+.brc{padding:9px 18px;border:1px solid var(--bd);border-radius:999px;font-size:13px;color:var(--gr);font-weight:500;cursor:pointer;transition:.15s;background:rgba(255,255,255,.03)}
+.brc:hover{border-color:var(--acc);color:#fff;background:rgba(255,79,31,.07)}
+
+/* CTA EMAIL */
+.cta{background:linear-gradient(130deg,rgba(255,79,31,.13),rgba(255,184,0,.06));border:1px solid rgba(255,79,31,.18);border-radius:24px;padding:56px 44px;text-align:center}
+.e-row{display:flex;gap:10px;max-width:420px;margin:24px auto 0}
+.e-row input{flex:1;background:rgba(255,255,255,.07);border:1px solid var(--bd2);border-radius:999px;padding:12px 18px;font-size:13px;color:#fff;outline:none;transition:.15s}
+.e-row input:focus{border-color:var(--acc)}
+.e-row input::placeholder{color:var(--gr2)}
+
+/* FOOTER */
+footer{border-top:1px solid var(--bd);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.fl{font-family:var(--fd);font-size:15px;font-weight:800;cursor:pointer}
+.fl b{color:var(--acc)}
+.fl-lnk{display:flex;gap:20px}
+.fl-lnk a{font-size:12px;color:var(--gr2);cursor:pointer;transition:.15s}
+.fl-lnk a:hover{color:#fff}
+
+/* COMPARATEUR */
+.cw{max-width:1200px;margin:0 auto;padding:36px 48px 60px}
+.cw-hd p{font-size:13px;color:var(--gr);margin-top:4px}
+.c-bar{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 10px}
+.c-bar input{flex:1;min-width:180px;padding:9px 14px;border-radius:var(--r);border:1px solid var(--bd);background:var(--bg3);color:#fff;font-size:13px;outline:none;transition:.15s}
+.c-bar input:focus{border-color:rgba(255,79,31,.4)}
+.c-bar select{padding:9px 12px;border-radius:var(--r);border:1px solid var(--bd);background:var(--bg3);color:var(--gr);font-size:12px;outline:none}
+.flbl{font-size:10px;color:var(--gr2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.frow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px}
+.fb-btn{padding:5px 12px;border-radius:999px;border:1px solid var(--bd);font-size:11px;cursor:pointer;background:transparent;color:var(--gr);transition:.15s}
+.fb-btn.on{background:rgba(255,79,31,.14);color:#FF7A52;border-color:rgba(255,79,31,.4);font-weight:700}
+.fb-btn.bon{background:rgba(255,184,0,.1);color:var(--gold);border-color:rgba(255,184,0,.35);font-weight:700}
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 22px}
+.kpi{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r);padding:10px 14px}
+.kpi-l{font-size:11px;color:var(--gr);margin-bottom:3px}
+.kpi-v{font-family:var(--fd);font-size:18px;font-weight:800;color:#fff}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.pc{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;cursor:pointer;transition:.2s}
+.pc:hover{border-color:rgba(255,79,31,.3);transform:translateY(-2px)}
+.pc-img{width:100%;height:100px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:34px}
+.pc-b{padding:12px 14px}
+.pc-brand{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--gr2);margin-bottom:3px}
+.pc-name{font-family:var(--fd);font-size:13px;font-weight:700;color:#fff;margin-bottom:8px;line-height:1.25}
+.pc-pr{border-top:1px solid var(--bd);padding-top:8px;display:flex;flex-direction:column;gap:5px}
+.pc-row{display:flex;align-items:center;justify-content:space-between}
+.pc-si{display:flex;align-items:center;gap:5px}
+.pc-logo{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;flex-shrink:0}
+.pc-sn{font-size:10px;color:var(--gr2)}
+.pc-p{font-size:13px;font-weight:700}
+.eco-t{font-size:10px;color:var(--gn2);font-weight:700;margin-left:3px}
+.pc-btn{width:100%;margin-top:8px;padding:7px;border-radius:9px;border:1px solid rgba(255,79,31,.3);background:rgba(255,79,31,.07);color:#FF7A52;font-size:11px;font-weight:700;cursor:pointer;transition:.15s}
+.pc-btn:hover{background:rgba(255,79,31,.16)}
+.bdg{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.3px;margin-bottom:7px}
+.bdg-n{background:rgba(33,150,243,.18);color:#64B5F6}
+.bdg-p{background:rgba(255,184,0,.15);color:#FFB800}
+.bdg-d{background:rgba(76,175,80,.18);color:#81C784}
+.nores{text-align:center;padding:3rem;color:var(--gr);font-size:13px;grid-column:1/-1}
+
+/* BRAND COMP */
+.bcw{max-width:1050px;margin:0 auto;padding:36px 48px 60px}
+.bc-sel{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin:24px 0}
+.bcs{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:20px;text-align:center}
+.bcs select{width:100%;padding:9px 12px;background:var(--bg4);border:1px solid var(--bd2);border-radius:var(--r);color:#fff;font-size:14px;font-weight:600;outline:none;margin-top:8px}
+.vs{background:var(--acc);color:#fff;font-family:var(--fd);font-size:17px;font-weight:800;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.ct{width:100%;border-collapse:collapse;margin-top:20px;border-radius:var(--r2);overflow:hidden}
+.ct th{background:var(--bg3);padding:13px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--bd)}
+.ct td{padding:13px 16px;border-bottom:1px solid var(--bd);font-size:13px;vertical-align:top}
+.ct tr:last-child td{border-bottom:none}
+.ct .crit{font-weight:700;color:#fff;width:160px}
+.ct .g{color:var(--gn2)}.ct .b{color:#EF9A9A}.ct .m{color:var(--gold)}
+.ct-hdr{background:var(--bg4);font-family:var(--fd);font-size:14px;font-weight:800;color:#fff;padding:14px 16px;border-bottom:1px solid var(--bd);text-align:center}
+
+/* FICHE */
+.fw{max-width:1160px;margin:0 auto;padding:36px 48px 60px}
+.f-top{display:grid;grid-template-columns:340px 1fr;gap:32px;margin-bottom:44px;align-items:start}
+.f-vis{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:32px;display:flex;align-items:center;justify-content:center;font-size:82px;min-height:220px;position:relative;margin-bottom:12px}
+.f-vis-bdg{position:absolute;top:12px;right:12px}
+.pbox{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:18px}
+.pb-top{display:flex;align-items:baseline;gap:9px;margin-bottom:3px}
+.pb-lbl{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--gn2);font-weight:700}
+.pb-v{font-family:var(--fd);font-size:40px;font-weight:800;color:#fff;letter-spacing:-1.5px}
+.pb-sh{font-size:12px;color:var(--gr);margin-bottom:11px}
+.pb-eco{display:inline-flex;align-items:center;gap:6px;background:rgba(76,175,80,.1);color:var(--gn2);border:1px solid rgba(76,175,80,.18);font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;margin-bottom:14px}
+.btn-buy{display:block;width:100%;padding:12px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:800;cursor:pointer;transition:.2s;font-family:var(--fd);box-shadow:0 4px 18px rgba(255,79,31,.28)}
+.btn-buy:hover{background:var(--acc2);transform:translateY(-1px)}
+.btn-al{display:block;width:100%;padding:9px;margin-top:8px;background:transparent;color:var(--gr);border:1px solid var(--bd2);border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.btn-al:hover{border-color:var(--gold);color:var(--gold)}
+.f-br{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--acc);font-weight:700;margin-bottom:8px}
+.f-nm{font-family:var(--fd);font-size:clamp(19px,2.8vw,32px);font-weight:800;line-height:1.1;letter-spacing:-.8px;color:#fff;margin-bottom:13px}
+.f-pills{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+.pill{padding:4px 11px;border:1px solid var(--bd);border-radius:999px;font-size:11px;color:var(--gr);background:rgba(255,255,255,.03)}
+.rbox{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:16px;margin-bottom:16px}
+.r-top{display:flex;align-items:center;gap:14px;margin-bottom:11px}
+.r-big{font-family:var(--fd);font-size:46px;font-weight:800;line-height:1}
+.r-stars{display:flex;gap:2px;margin-bottom:3px}
+.r-cnt{font-size:11px;color:var(--gr)}
+.rb-row{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.rb-n{font-size:10px;color:var(--gr2);width:12px;text-align:right}
+.rb-t{flex:1;height:4px;background:var(--bg4);border-radius:999px;overflow:hidden}
+.rb-f{height:100%;border-radius:999px;background:var(--gold)}
+.rb-p{font-size:10px;color:var(--gr2);width:24px;text-align:right}
+.sg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;margin-bottom:16px}
+.sp{padding:10px 13px;background:var(--bg3);border-right:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.sp:nth-child(even){border-right:none}
+.sp:nth-last-child(-n+2){border-bottom:none}
+.sp-l{font-size:9px;color:var(--gr2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.sp-v{font-size:12px;color:#fff;font-weight:600}
+.h3{font-family:var(--fd);font-size:18px;font-weight:800;color:#fff;margin-bottom:14px}
+.pt{width:100%;border-collapse:collapse;margin-bottom:36px}
+.pt th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--gr2);padding:9px 12px;border-bottom:1px solid var(--bd);text-align:left;font-weight:600}
+.pt td{padding:12px 12px;border-bottom:1px solid var(--bd);vertical-align:middle}
+.pt tr:last-child td{border-bottom:none}
+.pt tr:hover td{background:rgba(255,255,255,.02)}
+.pt-shop{display:flex;align-items:center;gap:8px}
+.pt-logo{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0}
+.pt-n{font-weight:600;color:#DDD;font-size:13px}
+.pt-p{font-family:var(--fd);font-size:16px;font-weight:800}
+.pt-best{color:var(--gn2)}.pt-mid{color:#fff}.pt-hi{color:var(--gr2)}
+.pt-bdg{background:rgba(76,175,80,.1);color:var(--gn2);border:1px solid rgba(76,175,80,.18);font-size:10px;padding:3px 9px;border-radius:999px;font-weight:700}
+.pt-btn{padding:6px 14px;border-radius:999px;border:1px solid var(--bd2);background:transparent;color:#ccc;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.pt-btn:hover{border-color:var(--acc);color:var(--acc)}
+.pt-btn.top{background:var(--acc);border-color:var(--acc);color:#fff}
+.chbox{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:22px;margin-bottom:36px}
+.ch-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:9px}
+.ch-t{font-family:var(--fd);font-size:15px;font-weight:800;color:#fff}
+.ch-tabs{display:flex;gap:5px}
+.ctab{padding:4px 12px;border-radius:999px;border:1px solid var(--bd);font-size:11px;cursor:pointer;background:transparent;color:var(--gr);transition:.15s}
+.ctab.on{background:rgba(255,79,31,.14);color:#FF7A52;border-color:rgba(255,79,31,.38);font-weight:700}
+.ch-ins{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}
+.ci{background:var(--bg4);border-radius:9px;padding:11px 12px}
+.ci-l{font-size:10px;color:var(--gr2);margin-bottom:3px}
+.ci-v{font-family:var(--fd);font-size:14px;font-weight:800;color:#fff}
+.ci-v.g{color:var(--gn2)}.ci-v.w{color:var(--gold)}
+.rl{display:flex;flex-direction:column;gap:11px;margin-bottom:36px}
+.rv{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:15px}
+.rv-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.rv-u{display:flex;align-items:center;gap:8px}
+.rv-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.rv-nm{font-size:13px;font-weight:700;color:#fff}
+.rv-d{font-size:10px;color:var(--gr2)}
+.rv-t{font-size:13px;font-weight:700;color:#fff;margin-bottom:5px}
+.rv-b{font-size:12px;color:var(--gr);line-height:1.65}
+.rv-ok{font-size:10px;color:var(--gn2);font-weight:700;margin-top:7px}
+.sg2{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:44px}
+.smc{background:var(--bg3);border:1px solid var(--bd);border-radius:var(--r2);padding:12px;cursor:pointer;transition:.2s;text-align:center}
+.smc:hover{border-color:rgba(255,79,31,.3);transform:translateY(-2px)}
+.sm-em{font-size:24px;margin-bottom:6px;display:block}
+.sm-n{font-size:11px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:4px}
+.sm-p{font-size:12px;font-weight:800;color:var(--gold)}
+@media(max-width:768px){
+  #hero{padding:0 22px 40px}
+  .hsec,.cw,.fw,.bcw{padding-left:20px;padding-right:20px}
+  .f-top{grid-template-columns:1fr}
+  .bc-sel{grid-template-columns:1fr}
+  .vs{display:none}
+  #nav{padding:0 18px}
+  .krow{grid-template-columns:1fr 1fr}
+  .ch-ins{grid-template-columns:1fr 1fr}
+  .h-stats{flex-wrap:wrap}
+  footer{padding:22px 20px;flex-direction:column;gap:10px}
+}
+</style>
+</head>
+<body>
+<nav id="nav">
+  <div class="nav-logo" onclick="go('home')">Tech<b>Compare</b></div>
+  <div class="nav-links">
+    <button onclick="go('home')" id="nl-h" class="act">Accueil</button>
+    <button onclick="go('comp')" id="nl-c">Comparer les prix</button>
+    <button onclick="go('bc')" id="nl-b">Comparer des marques</button>
+  </div>
+  <div class="nav-right">
+    <div id="nav-bc"><span id="bc-cat"></span>&nbsp;<span style="color:var(--gr2)">›</span>&nbsp;<b id="bc-nm"></b></div>
+    <button id="nav-back" onclick="go('comp')">← Retour</button>
+    <button class="btn btn-or" style="font-size:12px;padding:9px 18px" onclick="go('home');setTimeout(()=>document.getElementById('s-al').scrollIntoView({behavior:'smooth'}),200)">🔔 Alertes prix</button>
+  </div>
+</nav>
+
+<!-- ════ PAGE ACCUEIL ════ -->
+<div class="page on" id="pg-home">
+  <div id="hero">
+    <div class="h-glow"></div><div class="h-grid"></div>
+    <div class="live-badge">PRIX MIS À JOUR EN TEMPS RÉEL</div>
+    <h1 class="h1">Le meilleur prix tech,<br><b>toujours trouvé.</b></h1>
+    <p class="h-sub">Comparez Amazon, Fnac, Darty et Boulanger sur 120+ produits Apple, Samsung, Bose, JBL, Sony, Nintendo, ASUS et Xbox.</p>
+    <div class="h-btns">
+      <button class="btn btn-or" onclick="go('comp')">Comparer les prix →</button>
+      <button class="btn btn-gh" onclick="document.getElementById('s-deals').scrollIntoView({behavior:'smooth'})">Voir les bons plans</button>
+    </div>
+    <div class="h-stats">
+      <div class="hst"><span class="hst-v">120+</span><span class="hst-l">Produits</span></div>
+      <div class="hst"><span class="hst-v">4</span><span class="hst-l">Marchands</span></div>
+      <div class="hst"><span class="hst-v">8</span><span class="hst-l">Marques</span></div>
+      <div class="hst"><span class="hst-v" id="hs-eco">−€</span><span class="hst-l">Économie max</span></div>
+    </div>
+  </div>
+
+  <div class="ticker-w"><div class="ticker" id="ticker"></div></div>
+
+  <div class="hsec" id="s-deals">
+    <div class="stag">🔥 Bons plans du moment</div>
+    <h2 class="h2" style="margin-bottom:6px">Économies &gt; 150€</h2>
+    <p style="font-size:13px;color:var(--gr);margin-bottom:24px">Calculé automatiquement par rapport au prix le plus élevé parmi nos 4 marchands</p>
+    <div class="d-grid" id="h-deals"></div>
+  </div>
+
+  <div class="hsec">
+    <div class="stag">Pourquoi TechCompare</div>
+    <h2 class="h2" style="margin-bottom:28px">Achetez mieux, payez moins</h2>
+    <div class="fg">
+      <div class="fi"><div class="fi-ico">⚡</div><div class="fi-t">Prix en temps réel</div><div class="fi-d">Mis à jour plusieurs fois par jour sur les 4 marchands.</div></div>
+      <div class="fi"><div class="fi-ico">📊</div><div class="fi-t">Historique 6 mois</div><div class="fi-d">Visualisez l'évolution des prix pour acheter au bon moment.</div></div>
+      <div class="fi"><div class="fi-ico">🔔</div><div class="fi-t">Alertes par email</div><div class="fi-d">Notifié dès qu'un prix passe sous votre seuil.</div></div>
+      <div class="fi"><div class="fi-ico">🛡️</div><div class="fi-t">100% indépendant</div><div class="fi-d">Aucune marque ne nous paie. Nous affichons les faits.</div></div>
+    </div>
+  </div>
+
+  <div class="hsec">
+    <div class="stag">Marques disponibles</div>
+    <h2 class="h2" style="margin-bottom:22px">Toutes les grandes marques</h2>
+    <div class="br-row">
+      <div class="brc" onclick="goB('Apple')">🍎 Apple</div>
+      <div class="brc" onclick="goB('Samsung')">📱 Samsung</div>
+      <div class="brc" onclick="goB('Bose')">🎧 Bose</div>
+      <div class="brc" onclick="goB('JBL')">🔊 JBL</div>
+      <div class="brc" onclick="goB('Sony')">🎮 Sony</div>
+      <div class="brc" onclick="goB('Nintendo')">🕹️ Nintendo</div>
+      <div class="brc" onclick="goB('ASUS')">💻 ASUS</div>
+      <div class="brc" onclick="goB('Xbox')">🎯 Xbox</div>
+    </div>
+  </div>
+
+  <div class="hsec" id="s-al">
+    <div class="cta">
+      <div class="stag">Ne ratez plus rien</div>
+      <h2 class="h2">Alertes prix gratuites</h2>
+      <p style="font-size:14px;color:var(--gr);margin-top:10px;line-height:1.6">Renseignez votre email. Dès qu'un prix baisse, vous êtes le premier prévenu.</p>
+      <div class="e-row">
+        <input type="email" placeholder="votre@email.com" id="al-email">
+        <button class="btn btn-or" onclick="subAlert()">M'alerter</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="fl" onclick="go('home')">Tech<b>Compare</b></div>
+    <div class="fl-lnk"><a onclick="go('comp')">Comparer</a><a onclick="go('bc')">Marques</a><a onclick="go('home');setTimeout(()=>document.getElementById('s-al').scrollIntoView({behavior:'smooth'}),200)">Alertes</a><a>Contact</a></div>
+    <div style="font-size:11px;color:var(--gr2)">© 2026 TechCompare · 100% indépendant</div>
+  </footer>
+</div>
+
+<!-- ════ PAGE COMPARATEUR ════ -->
+<div class="page" id="pg-comp">
+  <div class="cw">
+    <div class="cw-hd">
+      <h2 class="h2">Comparateur de prix</h2>
+      <p>Sélectionnez un produit pour voir son prix sur Amazon, Fnac, Darty et Boulanger</p>
+    </div>
+    <div class="c-bar">
+      <input type="text" id="c-q" placeholder="Rechercher... iPhone 17, Galaxy S25, PS5, Switch 2..." oninput="renderC()">
+      <select id="c-s" onchange="renderC()">
+        <option value="">Trier par défaut</option>
+        <option value="asc">Prix croissant</option>
+        <option value="desc">Prix décroissant</option>
+        <option value="eco">Plus d'économies</option>
+      </select>
+    </div>
+    <div class="flbl">Catégorie</div>
+    <div class="frow" id="f-cats"></div>
+    <div class="flbl" style="margin-top:7px">Marque</div>
+    <div class="frow" id="f-brs"></div>
+    <div class="krow">
+      <div class="kpi"><div class="kpi-l">Produits affichés</div><div class="kpi-v" id="kp-n">0</div></div>
+      <div class="kpi"><div class="kpi-l">Marchands</div><div class="kpi-v">4</div></div>
+      <div class="kpi"><div class="kpi-l">Marques</div><div class="kpi-v">8</div></div>
+      <div class="kpi"><div class="kpi-l">Économie max</div><div class="kpi-v" id="kp-e">−€</div></div>
+    </div>
+    <div class="pg" id="prod-g"></div>
+  </div>
+</div>
+
+<!-- ════ COMP MARQUES ════ -->
+<div class="page" id="pg-bc">
+  <div class="bcw">
+    <div class="stag">Comparaison de marques</div>
+    <h2 class="h2" style="margin-bottom:6px">Comparez deux marques</h2>
+    <p style="font-size:13px;color:var(--gr)">Points forts, points faibles, gamme de prix</p>
+    <div class="bc-sel">
+      <div class="bcs">
+        <div style="font-size:10px;color:var(--gr);text-transform:uppercase;letter-spacing:1px">Marque A</div>
+        <select id="bc-a" onchange="renderBC()">
+          <option value="Apple">🍎 Apple</option>
+          <option value="Samsung">📱 Samsung</option>
+          <option value="Bose">🎧 Bose</option>
+          <option value="JBL">🔊 JBL</option>
+          <option value="Sony">🎮 Sony</option>
+          <option value="Nintendo">🕹️ Nintendo</option>
+          <option value="ASUS">💻 ASUS</option>
+          <option value="Xbox">🎯 Xbox</option>
+        </select>
+      </div>
+      <div class="vs">VS</div>
+      <div class="bcs">
+        <div style="font-size:10px;color:var(--gr);text-transform:uppercase;letter-spacing:1px">Marque B</div>
+        <select id="bc-b" onchange="renderBC()">
+          <option value="Samsung">📱 Samsung</option>
+          <option value="Apple">🍎 Apple</option>
+          <option value="Bose">🎧 Bose</option>
+          <option value="JBL">🔊 JBL</option>
+          <option value="Sony">🎮 Sony</option>
+          <option value="Nintendo">🕹️ Nintendo</option>
+          <option value="ASUS">💻 ASUS</option>
+          <option value="Xbox">🎯 Xbox</option>
+        </select>
+      </div>
+    </div>
+    <div id="bc-res"></div>
+  </div>
+</div>
+
+<!-- ════ FICHE PRODUIT ════ -->
+<div class="page" id="pg-fi">
+  <div class="fw">
+    <div class="f-top">
+      <div>
+        <div class="f-vis"><span id="f-em">📱</span><div class="f-vis-bdg" id="f-bdg"></div></div>
+        <div class="pbox">
+          <div class="pb-top"><span class="pb-lbl">Meilleur prix</span><span class="pb-v" id="f-bp"></span></div>
+          <div class="pb-sh" id="f-bsh"></div>
+          <div class="pb-eco" id="f-eco"></div>
+          <button class="btn-buy" id="f-buy">Voir l'offre →</button>
+          <button class="btn-al" id="f-al" onclick="toggleAl(this)">🔔 M'alerter si le prix baisse</button>
+        </div>
+      </div>
+      <div>
+        <div class="f-br" id="f-brand"></div>
+        <div class="f-nm" id="f-name"></div>
+        <div class="f-pills" id="f-pills"></div>
+        <div class="rbox">
+          <div class="r-top">
+            <div class="r-big" id="f-r"></div>
+            <div><div class="r-stars" id="f-stars"></div><div class="r-cnt" id="f-rc"></div></div>
+          </div>
+          <div id="f-bars"></div>
+        </div>
+        <div class="sg" id="f-specs"></div>
+      </div>
+    </div>
+    <div class="h3">Comparaison des prix</div>
+    <table class="pt"><thead><tr><th>Marchand</th><th>Prix</th><th>Livraison</th><th></th><th></th></tr></thead><tbody id="f-pt"></tbody></table>
+    <div class="chbox">
+      <div class="ch-hdr">
+        <div class="ch-t">Historique des prix — 6 derniers mois</div>
+        <div class="ch-tabs">
+          <button class="ctab" onclick="reChart(1,this)">1 mois</button>
+          <button class="ctab" onclick="reChart(3,this)">3 mois</button>
+          <button class="ctab on" onclick="reChart(6,this)">6 mois</button>
+        </div>
+      </div>
+      <canvas id="f-ch" height="70"></canvas>
+      <div class="ch-ins">
+        <div class="ci"><div class="ci-l">Plus bas (6 mois)</div><div class="ci-v g" id="ci-lo"></div></div>
+        <div class="ci"><div class="ci-l">Plus haut (6 mois)</div><div class="ci-v w" id="ci-hi"></div></div>
+        <div class="ci"><div class="ci-l">Actuel vs moyenne</div><div class="ci-v" id="ci-vs"></div></div>
+      </div>
+    </div>
+    <div class="h3">Avis clients vérifiés</div>
+    <div class="rl" id="f-revs"></div>
+    <div class="h3">Produits similaires</div>
+    <div class="sg2" id="f-sim"></div>
+  </div>
+</div>
+<script>
+const SH={az:{n:'Amazon',ab:'AZ',c:'#FF9900',bg:'#2A1800'},fn:{n:'Fnac',ab:'FN',c:'#FFD600',bg:'#1E1A00'},dt:{n:'Darty',ab:'DT',c:'#FF5252',bg:'#200A0A'},bo:{n:'Boulanger',ab:'BO',c:'#42A5F5',bg:'#071626'}};
+const sp=(k,p,d)=>({k,p,d:d||'Gratuit J+2'});
+
+const BD={
+  Apple:{eco:'Premium · iOS · Écosystème fermé',pros:['Qualité de fabrication exceptionnelle','iOS fluide et sécurisé','Support 5-6 ans','Meilleure revente','Optimisation logiciel/matériel'],cons:['Prix très élevés','Personnalisation limitée','Accessoires propriétaires'],pr:'479€ — 3 999€',r:4.5,cats:'iPhones, iPads, MacBooks, Apple Watch, AirPods'},
+  Samsung:{eco:'Android · AMOLED · Gamme complète',pros:['Gamme très large','Meilleurs écrans AMOLED','S Pen sur Ultra','Android ouvert','Innovation constante'],cons:['One UI parfois lourde','Support moins long','Mises à jour plus lentes'],pr:'299€ — 1 799€',r:4.3,cats:'Smartphones, Tablettes, TV, Montres, Laptops'},
+  Bose:{eco:'Audio premium · ANC référence',pros:['Meilleure réduction de bruit','Son équilibré de référence','Confort de port exceptionnel','Build quality élevé'],cons:['Prix élevés','App parfois instable'],pr:'129€ — 599€',r:4.5,cats:'Casques, Enceintes, Écouteurs'},
+  JBL:{eco:'Audio accessible · Robustesse · Outdoor',pros:['Excellent rapport qualité/prix','IP67 étanche','Puissance sonore élevée','Longue autonomie'],cons:['Son moins raffiné que Bose','Finitions plastiques'],pr:'69€ — 399€',r:4.3,cats:'Enceintes Bluetooth, Casques, Écouteurs'},
+  Sony:{eco:'PlayStation · Gaming · Innovation',pros:['PS5 : meilleure console du moment','DualSense : retour haptique révolutionnaire','Exclusivités PS5 exceptionnelles','WH-1000XM5 : référence casques'],cons:['PS5 Pro chère','Online payant (PS Plus)'],pr:'39€ — 699€',r:4.6,cats:'PS5, PS5 Pro, Manettes DualSense, Jeux, Casques'},
+  Nintendo:{eco:'Jeu familial · Portabilité · Exclusivités',pros:['Exclusivités incontournables (Zelda, Mario)','Switch 2 hybride unique','Idéal familles et enfants','Joy-Con anti-drift enfin'],cons:['Puissance inférieure','Online moins développé','Pas de 4K native'],pr:'39€ — 499€',r:4.4,cats:'Switch 2, Switch OLED, Switch Lite, Manettes, Jeux'},
+  ASUS:{eco:'PC Gaming · Ultrabooks · Rapport perf/prix',pros:['Meilleur rapport qualité/prix gaming','Écrans OLED exceptionnels','ROG : référence gaming','Large gamme'],cons:['SAV perfectible','ROG : consommation élevée'],pr:'549€ — 1 599€',r:4.4,cats:'Laptops Gaming ROG, Ultrabooks ZenBook, Vivobook'},
+  Xbox:{eco:'Microsoft · Game Pass · Cross-platform',pros:['Xbox Game Pass : meilleur abonnement gaming','Compatibilité PC','Rétrocompatibilité totale','Series X : puissance maximale'],cons:['Moins d\'exclusivités','Series S : stockage limité','Moins populaire en France'],pr:'39€ — 549€',r:4.2,cats:'Xbox Series X/S, Manettes, Jeux, Game Pass'}
+};
+
+const P=[
+  // APPLE iPhones
+  {id:'ip17pm',n:'iPhone 17 Pro Max 256 Go',br:'Apple',cat:'smartphone',em:'📱',b:'new',r:4.7,rc:1284,specs:[{l:'Écran',v:'6,9" OLED 120Hz'},{l:'Puce',v:'A19 Pro'},{l:'Stockage',v:'256 Go'},{l:'Photo',v:'48 MP + zoom 8x'},{l:'Batterie',v:'4 685 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:74},{n:4,p:17},{n:3,p:5},{n:2,p:2},{n:1,p:2}],prices:[sp('az',1239,'Gratuit J+1'),sp('fn',1299),sp('dt',1279,'4,99€ J+1'),sp('bo',1269)],reviews:[{nm:'Thomas L.',av:'TL',ac:'#1565C0',ab:'#0A1220',r:5,t:'Le meilleur iPhone jamais sorti',b:'Venu du 15 Pro, la différence est flagrante. Zoom 8x bluffant, écran d\'une clarté absolue, batterie 1,5 jour.',d:'15 mai 2026',s:'Fnac'},{nm:'Sophie M.',av:'SM',ac:'#7B1FA2',ab:'#16082A',r:5,t:'Photographe amateur conquise',b:'Mode portrait incroyable, photos de nuit sans bruit. La caméra principale change vraiment la donne.',d:'9 mai 2026',s:'Amazon'}],sim:['ip17p','ip17','ipair','s25u']},
+  {id:'ip17p',n:'iPhone 17 Pro 256 Go',br:'Apple',cat:'smartphone',em:'📱',b:'new',r:4.6,rc:876,specs:[{l:'Écran',v:'6,3" OLED 120Hz'},{l:'Puce',v:'A19 Pro'},{l:'Stockage',v:'256 Go'},{l:'Photo',v:'48 MP + zoom 5x'},{l:'Batterie',v:'3 900 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:68},{n:4,p:20},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',1099,'Gratuit J+1'),sp('fn',1149),sp('dt',1129),sp('bo',1119)],reviews:[{nm:'Lucas P.',av:'LP',ac:'#E65100',ab:'#2A1500',r:5,t:'Format parfait',b:'A19 Pro fulgurant, photo excellente, Dynamic Island très utile. Je préfère ce format au Max.',d:'12 mai 2026',s:'Amazon'}],sim:['ip17pm','ip17','ipair','ip16p']},
+  {id:'ip17',n:'iPhone 17 128 Go',br:'Apple',cat:'smartphone',em:'📱',b:'new',r:4.4,rc:654,specs:[{l:'Écran',v:'6,1" OLED 60Hz'},{l:'Puce',v:'A18'},{l:'Stockage',v:'128 Go'},{l:'Photo',v:'48 MP'},{l:'Batterie',v:'3 561 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:62},{n:4,p:23},{n:3,p:9},{n:2,p:4},{n:1,p:2}],prices:[sp('az',849,'Gratuit J+1'),sp('fn',899),sp('dt',879),sp('bo',869)],reviews:[{nm:'Emma B.',av:'EB',ac:'#880E4F',ab:'#280A18',r:4,t:'Bon iPhone entrée de gamme',b:'Par rapport au 16, amélioration photo visible. Rapport qualité/prix solide.',d:'3 mai 2026',s:'Darty'}],sim:['ip17p','ipair','ipse','ip16']},
+  {id:'ipair',n:'iPhone Air 256 Go',br:'Apple',cat:'smartphone',em:'📱',b:'new',r:4.3,rc:423,specs:[{l:'Écran',v:'6,6" OLED'},{l:'Puce',v:'A18'},{l:'Épaisseur',v:'5,5 mm'},{l:'Poids',v:'135 g'},{l:'Stockage',v:'256 Go'},{l:'Photo',v:'48 MP'}],bars:[{n:5,p:55},{n:4,p:26},{n:3,p:12},{n:2,p:5},{n:1,p:2}],prices:[sp('az',799,'Gratuit J+1'),sp('fn',849),sp('dt',829),sp('bo',819)],reviews:[{nm:'Jade M.',av:'JM',ac:'#00695C',ab:'#081A18',r:5,t:'Ultra fin, un plaisir',b:'On ne le sent plus en poche. Design révolutionnaire, écran superbe.',d:'10 mai 2026',s:'Amazon'}],sim:['ip17','ip17p','ipse','ip16']},
+  {id:'ip16pm',n:'iPhone 16 Pro Max 256 Go',br:'Apple',cat:'smartphone',em:'📱',b:'pop',r:4.5,rc:2341,specs:[{l:'Écran',v:'6,9" OLED 120Hz'},{l:'Puce',v:'A18 Pro'},{l:'Stockage',v:'256 Go'},{l:'Photo',v:'48 MP + zoom 5x'},{l:'Batterie',v:'4 685 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:70},{n:4,p:19},{n:3,p:6},{n:2,p:3},{n:1,p:2}],prices:[sp('az',1079,'Gratuit J+1'),sp('fn',1149),sp('dt',1129),sp('bo',1099)],reviews:[{nm:'Antoine G.',av:'AG',ac:'#1B5E20',ab:'#0A180A',r:5,t:'Toujours redoutable en 2026',b:'Face aux 17, ce modèle reste excellent. Zoom 5x fantastique, batterie impressionnante.',d:'1 mai 2026',s:'Amazon'}],sim:['ip17pm','ip16p','ip15pm','s25u']},
+  {id:'ip16p',n:'iPhone 16 Pro 128 Go',br:'Apple',cat:'smartphone',em:'📱',b:'pop',r:4.4,rc:1876,specs:[{l:'Écran',v:'6,3" OLED 120Hz'},{l:'Puce',v:'A18 Pro'},{l:'Stockage',v:'128 Go'},{l:'Photo',v:'48 MP + zoom 5x'},{l:'Batterie',v:'3 582 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:65},{n:4,p:22},{n:3,p:8},{n:2,p:3},{n:1,p:2}],prices:[sp('az',949,'Gratuit J+1'),sp('fn',999),sp('dt',979),sp('bo',969)],reviews:[{nm:'Manon T.',av:'MT',ac:'#4A148C',ab:'#160828',r:4,t:'Excellent, prix élevé',b:'Très satisfaite. Rapide, belle photo. A18 Pro vraiment puissante.',d:'20 avril 2026',s:'Fnac'}],sim:['ip17p','ip16pm','ip15p','s25p']},
+  {id:'ip16',n:'iPhone 16 128 Go',br:'Apple',cat:'smartphone',em:'📱',b:'deal',r:4.3,rc:1423,specs:[{l:'Écran',v:'6,1" OLED 60Hz'},{l:'Puce',v:'A18'},{l:'Stockage',v:'128 Go'},{l:'Photo',v:'48 MP'},{l:'Batterie',v:'3 561 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:59},{n:4,p:24},{n:3,p:10},{n:2,p:5},{n:1,p:2}],prices:[sp('az',749,'Gratuit J+1'),sp('fn',799),sp('dt',779),sp('bo',769)],reviews:[{nm:'Romain H.',av:'RH',ac:'#E65100',ab:'#2A1200',r:4,t:'Bon rapport qualité/prix',b:'Pour un iPhone récent à moins de 800€, excellente affaire.',d:'15 avril 2026',s:'Boulanger'}],sim:['ip17','ip16p','ip15','ipse']},
+  {id:'ip15pm',n:'iPhone 15 Pro Max 256 Go',br:'Apple',cat:'smartphone',em:'📱',b:'deal',r:4.4,rc:3241,specs:[{l:'Écran',v:'6,7" OLED 120Hz'},{l:'Puce',v:'A17 Pro'},{l:'Stockage',v:'256 Go'},{l:'Photo',v:'48 MP + zoom 5x'},{l:'USB',v:'USB-C'},{l:'5G',v:'Oui'}],bars:[{n:5,p:68},{n:4,p:20},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',849),sp('fn',919),sp('dt',899),sp('bo',879)],reviews:[{nm:'Pierre V.',av:'PV',ac:'#01579B',ab:'#081620',r:5,t:'Encore excellent en 2026',b:'A17 Pro solide, photos superbes. Très bon rapport qualité/prix en 2026.',d:'10 avril 2026',s:'Amazon'}],sim:['ip16pm','ip15p','ip14pm','s25u']},
+  {id:'ip15p',n:'iPhone 15 Pro 128 Go',br:'Apple',cat:'smartphone',em:'📱',b:'deal',r:4.3,rc:2876,specs:[{l:'Écran',v:'6,1" OLED 120Hz'},{l:'Puce',v:'A17 Pro'},{l:'Photo',v:'48 MP + zoom 3x'},{l:'USB',v:'USB-C'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Oui'}],bars:[{n:5,p:63},{n:4,p:22},{n:3,p:9},{n:2,p:4},{n:1,p:2}],prices:[sp('az',749),sp('fn',799),sp('dt',779),sp('bo',769)],reviews:[{nm:'Nina L.',av:'NL',ac:'#4E342E',ab:'#180E0A',r:4,t:'Très bon choix qualité/prix',b:'À 749€, reste une référence. Dynamic Island, USB-C, photo excellente.',d:'5 avril 2026',s:'Darty'}],sim:['ip16p','ip15pm','ip14p','s25']},
+  {id:'ip15',n:'iPhone 15 128 Go',br:'Apple',cat:'smartphone',em:'📱',b:'deal',r:4.2,rc:2143,specs:[{l:'Écran',v:'6,1" OLED 60Hz'},{l:'Puce',v:'A16'},{l:'Photo',v:'48 MP'},{l:'USB',v:'USB-C'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Oui'}],bars:[{n:5,p:57},{n:4,p:25},{n:3,p:11},{n:2,p:5},{n:1,p:2}],prices:[sp('az',599),sp('fn',649),sp('dt',629),sp('bo',619)],reviews:[{nm:'Alexis C.',av:'AC',ac:'#1A237E',ab:'#080C28',r:4,t:'Valeur sûre',b:'À 599€, meilleur rapport qualité/prix. USB-C bienvenu, photo améliorée.',d:'1 avril 2026',s:'Amazon'}],sim:['ip16','ip15p','ip14','ipse']},
+  {id:'ip14pm',n:'iPhone 14 Pro Max 256 Go',br:'Apple',cat:'smartphone',em:'📱',b:'deal',r:4.2,rc:4231,specs:[{l:'Écran',v:'6,7" OLED 120Hz'},{l:'Puce',v:'A15 Bionic'},{l:'Photo',v:'48 MP'},{l:'Stockage',v:'256 Go'},{l:'Dynamic Island',v:'Non'},{l:'5G',v:'Oui'}],bars:[{n:5,p:60},{n:4,p:22},{n:3,p:10},{n:2,p:5},{n:1,p:3}],prices:[sp('az',649),sp('fn',719),sp('dt',699),sp('bo',679)],reviews:[{nm:'David K.',av:'DK',ac:'#37474F',ab:'#0A1014',r:4,t:'Toujours solide',b:'iPhone 14 Pro Max encore performant. À ce prix en 2026, excellent rapport qualité/prix.',d:'28 mars 2026',s:'Fnac'}],sim:['ip15pm','ip14p','ip16pm','s25u']},
+  {id:'ip14p',n:'iPhone 14 Pro 128 Go',br:'Apple',cat:'smartphone',em:'📱',b:'deal',r:4.2,rc:3876,specs:[{l:'Écran',v:'6,1" OLED 120Hz'},{l:'Puce',v:'A15 Bionic'},{l:'Photo',v:'48 MP'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Oui'},{l:'USB',v:'Lightning'}],bars:[{n:5,p:58},{n:4,p:23},{n:3,p:11},{n:2,p:5},{n:1,p:3}],prices:[sp('az',549),sp('fn',599),sp('dt',579),sp('bo',569)],reviews:[{nm:'Sarah B.',av:'SB',ac:'#880E4F',ab:'#280A18',r:4,t:'Très bien pour le prix',b:'Pour moins de 600€, iPhone 14 Pro reste excellent. Photo très bonne.',d:'20 mars 2026',s:'Amazon'}],sim:['ip15p','ip14pm','ip14','ip16p']},
+  {id:'ip14',n:'iPhone 14 128 Go',br:'Apple',cat:'smartphone',em:'📱',b:'deal',r:4.1,rc:3124,specs:[{l:'Écran',v:'6,1" OLED 60Hz'},{l:'Puce',v:'A15 Bionic'},{l:'Photo',v:'12 MP'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Oui'},{l:'USB',v:'Lightning'}],bars:[{n:5,p:54},{n:4,p:24},{n:3,p:12},{n:2,p:6},{n:1,p:4}],prices:[sp('az',499),sp('fn',549),sp('dt',529),sp('bo',519)],reviews:[{nm:'Paul M.',av:'PM',ac:'#33691E',ab:'#0A180A',r:4,t:'Bon iPhone sans se ruiner',b:'Très fluide, photo correcte. Pour passer à iOS sans dépenser 800€+.',d:'15 mars 2026',s:'Boulanger'}],sim:['ip15','ip14p','ipse','s25']},
+  {id:'ipse',n:'iPhone SE 128 Go',br:'Apple',cat:'smartphone',em:'📱',b:'deal',r:4.0,rc:1876,specs:[{l:'Écran',v:'4,7" LCD'},{l:'Puce',v:'A15 Bionic'},{l:'Format',v:'Compact'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Oui'},{l:'Photo',v:'12 MP'}],bars:[{n:5,p:50},{n:4,p:25},{n:3,p:14},{n:2,p:7},{n:1,p:4}],prices:[sp('az',479),sp('fn',519),sp('dt',509),sp('bo',499)],reviews:[{nm:'Marie-Claire T.',av:'MC',ac:'#4A148C',ab:'#160828',r:4,t:'Seul iPhone compact',b:'Format unique. Puce A15 très rapide, prix accessible. Idéal petites mains.',d:'10 mars 2026',s:'Fnac'}],sim:['ip14','ip15','ip16','ipair']},
+  // APPLE WATCH
+  {id:'aw11',n:'Apple Watch Series 11 42 mm',br:'Apple',cat:'montre',em:'⌚',b:'new',r:4.6,rc:743,specs:[{l:'Écran',v:'LTPO OLED'},{l:'Puce',v:'S11'},{l:'ECG',v:'Oui'},{l:'GPS',v:'Oui'},{l:'Autonomie',v:'18h'},{l:'Étanchéité',v:'50m'}],bars:[{n:5,p:70},{n:4,p:20},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',349),sp('fn',399),sp('dt',389),sp('bo',379)],reviews:[{nm:'Julien F.',av:'JF',ac:'#1565C0',ab:'#081220',r:5,t:'Meilleure montre connectée',b:'Santé, sport, notifications — tout est parfait. La meilleure Apple Watch à ce jour.',d:'8 mai 2026',s:'Amazon'}],sim:['aw11l','awu3','awse3','aw10']},
+  {id:'aw11l',n:'Apple Watch Series 11 46 mm',br:'Apple',cat:'montre',em:'⌚',b:'new',r:4.6,rc:543,specs:[{l:'Écran',v:'LTPO OLED large'},{l:'Puce',v:'S11'},{l:'ECG',v:'Oui'},{l:'GPS',v:'Oui'},{l:'Autonomie',v:'18h'},{l:'Format',v:'Grand écran'}],bars:[{n:5,p:70},{n:4,p:20},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',379),sp('fn',429),sp('dt',419),sp('bo',409)],reviews:[{nm:'Marc B.',av:'MB',ac:'#1B5E20',ab:'#0A180A',r:5,t:'Grand format, confort parfait',b:'Le grand écran fait vraiment la différence. Lisibilité améliorée.',d:'5 mai 2026',s:'Fnac'}],sim:['aw11','awu3','aw10','awse3']},
+  {id:'awu3',n:'Apple Watch Ultra 3',br:'Apple',cat:'montre',em:'⌚',b:'new',r:4.7,rc:412,specs:[{l:'Boîtier',v:'Titane 49mm'},{l:'Écran',v:'LTPO OLED 2000 nits'},{l:'GPS',v:'Double fréquence'},{l:'Autonomie',v:'36h'},{l:'Étanchéité',v:'100m'},{l:'Altimètre',v:'Oui'}],bars:[{n:5,p:76},{n:4,p:18},{n:3,p:4},{n:2,p:1},{n:1,p:1}],prices:[sp('az',849),sp('fn',899),sp('dt',879),sp('bo',869)],reviews:[{nm:'Marc A.',av:'MA',ac:'#E65100',ab:'#2A1200',r:5,t:'Pour sportifs exigeants',b:'Trail, triathlon, plongée — gère tout. Autonomie incroyable.',d:'5 mai 2026',s:'Amazon'}],sim:['aw11','aw11l','aw10','awse3']},
+  {id:'awse3',n:'Apple Watch SE 3 40 mm',br:'Apple',cat:'montre',em:'⌚',b:'deal',r:4.3,rc:1243,specs:[{l:'Écran',v:'LTPO OLED'},{l:'GPS',v:'Oui'},{l:'Détection chute',v:'Oui'},{l:'Autonomie',v:'18h'},{l:'5G',v:'Option'},{l:'Prix',v:'Entrée de gamme'}],bars:[{n:5,p:58},{n:4,p:25},{n:3,p:10},{n:2,p:4},{n:1,p:3}],prices:[sp('az',219),sp('fn',249),sp('dt',239),sp('bo',229)],reviews:[{nm:'Chloé D.',av:'CD',ac:'#1B5E20',ab:'#0A180A',r:4,t:'Bonne entrée Apple Watch',b:'Pour débuter dans l\'écosystème Apple Watch, parfait. Prix raisonnable.',d:'2 mai 2026',s:'Boulanger'}],sim:['aw11','aw10','aw9','gw7']},
+  {id:'aw10',n:'Apple Watch Series 10 42 mm',br:'Apple',cat:'montre',em:'⌚',b:'deal',r:4.4,rc:1876,specs:[{l:'Écran',v:'LTPO OLED'},{l:'Puce',v:'S10'},{l:'Détection apnée',v:'Oui'},{l:'Autonomie',v:'18h'},{l:'Épaisseur',v:'9,7mm'},{l:'GPS',v:'Oui'}],bars:[{n:5,p:65},{n:4,p:22},{n:3,p:8},{n:2,p:3},{n:1,p:2}],prices:[sp('az',299),sp('fn',349),sp('dt',339),sp('bo',329)],reviews:[{nm:'Tom L.',av:'TL',ac:'#4A148C',ab:'#160828',r:4,t:'La plus fine Apple Watch',b:'Design ultra fin, très confortable. Détection apnée vraiment utile.',d:'25 avril 2026',s:'Fnac'}],sim:['aw11','awse3','aw9','awu3']},
+  {id:'aw9',n:'Apple Watch Series 9 41 mm',br:'Apple',cat:'montre',em:'⌚',b:'deal',r:4.3,rc:2541,specs:[{l:'Écran',v:'LTPO OLED'},{l:'Puce',v:'S9'},{l:'Double tap',v:'Oui'},{l:'Autonomie',v:'18h'},{l:'GPS',v:'Oui'},{l:'CO₂',v:'Neutre'}],bars:[{n:5,p:62},{n:4,p:23},{n:3,p:9},{n:2,p:4},{n:1,p:2}],prices:[sp('az',269),sp('fn',319),sp('dt',309),sp('bo',299)],reviews:[{nm:'Lena P.',av:'LP',ac:'#01579B',ab:'#081620',r:4,t:'Encore excellent',b:'Double tap très pratique. À moins de 300€, excellente affaire.',d:'20 avril 2026',s:'Darty'}],sim:['aw10','awse3','aw11','gw7']},
+  // APPLE iPAD
+  {id:'ipadpro13',n:'iPad Pro M4 13 pouces',br:'Apple',cat:'tablette',em:'📟',b:'pop',r:4.7,rc:632,specs:[{l:'Écran',v:'13" OLED Ultra Retina'},{l:'Puce',v:'M4'},{l:'RAM',v:'16 Go'},{l:'Stockage',v:'256 Go'},{l:'Épaisseur',v:'5,1 mm'},{l:'Apple Pencil',v:'Pro 2e gen'}],bars:[{n:5,p:75},{n:4,p:18},{n:3,p:5},{n:2,p:1},{n:1,p:1}],prices:[sp('az',1399),sp('fn',1449),sp('dt',1429),sp('bo',1419)],reviews:[{nm:'Artiste Pro',av:'AP',ac:'#880E4F',ab:'#280A18',r:5,t:'Tablette ultime pour créatifs',b:'Écran OLED à couper le souffle. M4 gère tout. L\'iPad le plus impressionnant.',d:'15 mai 2026',s:'Amazon'}],sim:['ipadpro11','ipadair13','ipadair11','mba13']},
+  {id:'ipadpro11',n:'iPad Pro M4 11 pouces',br:'Apple',cat:'tablette',em:'📟',b:'pop',r:4.6,rc:891,specs:[{l:'Écran',v:'11" OLED Ultra Retina'},{l:'Puce',v:'M4'},{l:'RAM',v:'16 Go'},{l:'Stockage',v:'256 Go'},{l:'5G',v:'Option'},{l:'Apple Pencil',v:'Pro 2e gen'}],bars:[{n:5,p:72},{n:4,p:19},{n:3,p:6},{n:2,p:2},{n:1,p:1}],prices:[sp('az',1099),sp('fn',1149),sp('dt',1129),sp('bo',1119)],reviews:[{nm:'Étudiant Archi',av:'EA',ac:'#1565C0',ab:'#081220',r:5,t:'Remplace mon MacBook',b:'Léger, puissant, magnifique. Le Magic Keyboard le rend encore plus polyvalent.',d:'12 mai 2026',s:'Fnac'}],sim:['ipadpro13','ipadair11','ipadmini','mba13']},
+  {id:'ipadair13',n:'iPad Air M4 13 pouces 2026',br:'Apple',cat:'tablette',em:'📟',b:'new',r:4.5,rc:312,specs:[{l:'Écran',v:'13" Liquid Retina'},{l:'Puce',v:'M4'},{l:'RAM',v:'8 Go'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Option'},{l:'Épaisseur',v:'6,1 mm'}],bars:[{n:5,p:68},{n:4,p:21},{n:3,p:7},{n:2,p:3},{n:1,p:1}],prices:[sp('az',869),sp('fn',919),sp('dt',899),sp('bo',889)],reviews:[{nm:'Jean-Marc P.',av:'JP',ac:'#1B5E20',ab:'#0A180A',r:5,t:'Grand format accessible',b:'Enfin un grand iPad à prix raisonnable. Très pratique pour lire, travailler.',d:'8 mai 2026',s:'Amazon'}],sim:['ipadair11','ipadpro13','tabs9p','ipadmini']},
+  {id:'ipadair11',n:'iPad Air M4 11 pouces 2026',br:'Apple',cat:'tablette',em:'📟',b:'new',r:4.5,rc:287,specs:[{l:'Écran',v:'11" Liquid Retina'},{l:'Puce',v:'M4'},{l:'RAM',v:'8 Go'},{l:'Épaisseur',v:'6,1 mm'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Option'}],bars:[{n:5,p:65},{n:4,p:23},{n:3,p:8},{n:2,p:3},{n:1,p:1}],prices:[sp('az',517),sp('fn',569),sp('dt',549),sp('bo',539)],reviews:[{nm:'Lydie S.',av:'LS',ac:'#7B1FA2',ab:'#160828',r:5,t:'Meilleure tablette à ce prix',b:'Puce M4, beau, léger. L\'écart de prix avec le Pro n\'est plus justifié.',d:'5 mai 2026',s:'Amazon'}],sim:['ipadair13','ipadpro11','ipada16','tabs10']},
+  {id:'ipada16',n:'iPad A16 11 pouces',br:'Apple',cat:'tablette',em:'📟',b:'deal',r:4.2,rc:1234,specs:[{l:'Écran',v:'11" Liquid Retina'},{l:'Puce',v:'A16'},{l:'RAM',v:'8 Go'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Option'},{l:'Apple Pencil',v:'USB-C'}],bars:[{n:5,p:58},{n:4,p:24},{n:3,p:11},{n:2,p:5},{n:1,p:2}],prices:[sp('az',369),sp('fn',399),sp('dt',389),sp('bo',379)],reviews:[{nm:'Théo B.',av:'TB',ac:'#E65100',ab:'#2A1200',r:4,t:'Parfait pour le quotidien',b:'Pour surfer, regarder des films, prendre des notes — parfait. Puce A16 suffisante.',d:'1 mai 2026',s:'Boulanger'}],sim:['ipadair11','ipadmini','tabs10','ipadair13']},
+  {id:'ipadmini',n:'iPad mini A17 Pro',br:'Apple',cat:'tablette',em:'📟',b:'pop',r:4.4,rc:876,specs:[{l:'Écran',v:'8,3" Liquid Retina'},{l:'Puce',v:'A17 Pro'},{l:'Format',v:'Ultra compact'},{l:'RAM',v:'8 Go'},{l:'Stockage',v:'128 Go'},{l:'5G',v:'Option'}],bars:[{n:5,p:63},{n:4,p:24},{n:3,p:8},{n:2,p:3},{n:1,p:2}],prices:[sp('az',549),sp('fn',599),sp('dt',579),sp('bo',569)],reviews:[{nm:'Voyageur Pro',av:'VP',ac:'#01579B',ab:'#081620',r:5,t:'iPad parfait pour voyager',b:'Tient dans une poche de veste. A17 Pro ultra puissant pour la taille.',d:'28 avril 2026',s:'Amazon'}],sim:['ipadair11','ipada16','ipadpro11','ip17pm']},
+  // APPLE MacBook
+  {id:'mba13',n:'MacBook Air M4 13 pouces',br:'Apple',cat:'laptop',em:'💻',b:'pop',r:4.7,rc:1432,specs:[{l:'Écran',v:'13,6" Liquid Retina'},{l:'Puce',v:'M4'},{l:'RAM',v:'16 Go'},{l:'SSD',v:'256 Go'},{l:'Autonomie',v:'18h'},{l:'Poids',v:'1,24 kg'}],bars:[{n:5,p:76},{n:4,p:17},{n:3,p:5},{n:2,p:1},{n:1,p:1}],prices:[sp('az',1099),sp('fn',1149),sp('dt',1129),sp('bo',1119)],reviews:[{nm:'Étudiante M2',av:'EM',ac:'#880E4F',ab:'#280A18',r:5,t:'Meilleur laptop du marché',b:'Léger, silencieux, puissant, autonomie incroyable. La puce M4 est bluffante.',d:'10 mai 2026',s:'Amazon'}],sim:['mba15','mbp14','rogz14','zen14']},
+  {id:'mba15',n:'MacBook Air M4 15 pouces',br:'Apple',cat:'laptop',em:'💻',b:'pop',r:4.6,rc:876,specs:[{l:'Écran',v:'15,3" Liquid Retina'},{l:'Puce',v:'M4'},{l:'RAM',v:'16 Go'},{l:'SSD',v:'256 Go'},{l:'Autonomie',v:'18h'},{l:'Poids',v:'1,51 kg'}],bars:[{n:5,p:72},{n:4,p:19},{n:3,p:6},{n:2,p:2},{n:1,p:1}],prices:[sp('az',1349),sp('fn',1399),sp('dt',1379),sp('bo',1369)],reviews:[{nm:'Consultant B.',av:'CB',ac:'#1565C0',ab:'#081220',r:5,t:'Grand écran, perfs top',b:'Idéal pour le multitâche. M4 gère Excel, PowerPoint et Zoom sans broncher.',d:'7 mai 2026',s:'Fnac'}],sim:['mba13','mbp14','rogst16','zenpro']},
+  {id:'mbp14',n:'MacBook Pro M4 Pro 14 pouces',br:'Apple',cat:'laptop',em:'💻',b:'new',r:4.8,rc:643,specs:[{l:'Écran',v:'14" Liquid Retina XDR'},{l:'Puce',v:'M4 Pro'},{l:'RAM',v:'24 Go'},{l:'SSD',v:'512 Go'},{l:'Autonomie',v:'22h'},{l:'Ports',v:'Thunderbolt 5'}],bars:[{n:5,p:80},{n:4,p:15},{n:3,p:3},{n:2,p:1},{n:1,p:1}],prices:[sp('az',1999),sp('fn',2099),sp('dt',2049),sp('bo',2029)],reviews:[{nm:'Dev Fullstack',av:'DF',ac:'#2E7D32',ab:'#0A180A',r:5,t:'Bête de travail',b:'Xcode, Docker, Android Studio — tout en simultané. Écran XDR sublime.',d:'12 mai 2026',s:'Amazon'}],sim:['mbp16','mba15','rogz14','macmini']},
+  {id:'mbp16',n:'MacBook Pro M4 Max 16 pouces',br:'Apple',cat:'laptop',em:'💻',b:'new',r:4.8,rc:321,specs:[{l:'Écran',v:'16" Liquid Retina XDR'},{l:'Puce',v:'M4 Max'},{l:'RAM',v:'36 Go'},{l:'SSD',v:'1 To'},{l:'GPU',v:'40 cœurs'},{l:'Autonomie',v:'22h'}],bars:[{n:5,p:82},{n:4,p:13},{n:3,p:3},{n:2,p:1},{n:1,p:1}],prices:[sp('az',3299),sp('fn',3499),sp('dt',3399),sp('bo',3349)],reviews:[{nm:'Motion Designer',av:'MD',ac:'#4A148C',ab:'#160828',r:5,t:'Irremplaçable pour la vidéo 8K',b:'Montage 8K ProRes en temps réel. Thunderbolt 5 change tout.',d:'10 mai 2026',s:'Amazon'}],sim:['mbp14','mba15','macmini','rogst16']},
+  {id:'macmini',n:'Mac mini M4',br:'Apple',cat:'desktop',em:'🖥️',b:'pop',r:4.7,rc:1123,specs:[{l:'Puce',v:'M4'},{l:'RAM',v:'16 Go'},{l:'SSD',v:'256 Go'},{l:'Ports',v:'3× USB-C + HDMI'},{l:'Écrans',v:'3 simultanés'},{l:'Dim.',v:'12,7×12,7 cm'}],bars:[{n:5,p:76},{n:4,p:17},{n:3,p:5},{n:2,p:1},{n:1,p:1}],prices:[sp('az',886),sp('fn',949),sp('dt',929),sp('bo',909)],reviews:[{nm:'Graphiste J.',av:'GJ',ac:'#E65100',ab:'#2A1200',r:5,t:'Meilleur rapport qualité/prix Apple',b:'Pour moins de 900€, plus puissant que mon ancien iMac à 2000€.',d:'5 mai 2026',s:'Amazon'}],sim:['mbp14','mba13','mba15','mbp16']},
+  // APPLE AUDIO
+  {id:'app3',n:'AirPods Pro 3',br:'Apple',cat:'audio',em:'🎵',b:'new',r:4.6,rc:743,specs:[{l:'ANC',v:'Active Noise Cancel.'},{l:'Puce',v:'H2'},{l:'Autonomie',v:'6h + 24h boîtier'},{l:'Spatial Audio',v:'Oui'},{l:'Résistance',v:'IPX4'},{l:'Charge',v:'USB-C / MagSafe'}],bars:[{n:5,p:70},{n:4,p:20},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',269),sp('fn',299),sp('dt',289),sp('bo',279)],reviews:[{nm:'Commuter J.',av:'CJ',ac:'#1565C0',ab:'#081220',r:5,t:'Meilleure réduction de bruit',b:'Dans le métro, plus rien ne passe. Audio spatial bluffant.',d:'12 mai 2026',s:'Amazon'}],sim:['app2','apmax','boseucears','sonyxm5']},
+  {id:'app2',n:'AirPods Pro 2',br:'Apple',cat:'audio',em:'🎵',b:'deal',r:4.5,rc:2341,specs:[{l:'ANC',v:'Active Noise Cancel.'},{l:'Puce',v:'H2'},{l:'Autonomie',v:'6h + 30h boîtier'},{l:'Spatial Audio',v:'Oui'},{l:'Résistance',v:'IPX4'},{l:'Charge',v:'USB-C'}],bars:[{n:5,p:68},{n:4,p:21},{n:3,p:7},{n:2,p:2},{n:1,p:2}],prices:[sp('az',199),sp('fn',229),sp('dt',219),sp('bo',209)],reviews:[{nm:'Télétravailleur',av:'TT',ac:'#2E7D32',ab:'#0A180A',r:5,t:'Indispensable en télétravail',b:'ANC fantastique pour les appels. À 199€ sur Amazon, meilleure affaire du moment.',d:'8 mai 2026',s:'Amazon'}],sim:['app3','apmax','boseucears','jbllive2']},
+  {id:'app4',n:'AirPods 4',br:'Apple',cat:'audio',em:'🎵',b:'pop',r:4.3,rc:1876,specs:[{l:'Design',v:'Sans embout'},{l:'Puce',v:'H2'},{l:'ANC',v:'Option'},{l:'Autonomie',v:'5h + 30h boîtier'},{l:'Résistance',v:'IPX4'},{l:'Prix',v:'Entrée de gamme'}],bars:[{n:5,p:60},{n:4,p:24},{n:3,p:10},{n:2,p:4},{n:1,p:2}],prices:[sp('az',139),sp('fn',159),sp('dt',149),sp('bo',149)],reviews:[{nm:'Sophie K.',av:'SK',ac:'#880E4F',ab:'#280A18',r:4,t:'Confortables et pratiques',b:'Sans embout, très confortables. Son bien meilleur. Pour usage quotidien parfaits.',d:'5 mai 2026',s:'Fnac'}],sim:['app2','app3','jbllive2','jblt770nc']},
+  {id:'apmax',n:'AirPods Max 2',br:'Apple',cat:'audio',em:'🎧',b:'new',r:4.5,rc:432,specs:[{l:'Driver',v:'40mm custom'},{l:'ANC',v:'Computationnel'},{l:'Spatial Audio',v:'Head tracking'},{l:'Autonomie',v:'30h'},{l:'Charge',v:'USB-C'},{l:'Matériaux',v:'Aluminium + Mesh'}],bars:[{n:5,p:68},{n:4,p:20},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',529),sp('fn',579),sp('dt',559),sp('bo',549)],reviews:[{nm:'Audiophile Pro',av:'AP',ac:'#4A148C',ab:'#160828',r:5,t:'Le meilleur casque du marché',b:'ANC le meilleur testé, son d\'une clarté absolue. AirPods Max 2 redéfinissent la catégorie.',d:'10 mai 2026',s:'Amazon'}],sim:['boseqcu','app3','boseqc45','sonyxm5']},
+  // SAMSUNG
+  {id:'s25u',n:'Samsung Galaxy S25 Ultra 256 Go',br:'Samsung',cat:'smartphone',em:'📱',b:'new',r:4.6,rc:1123,specs:[{l:'Écran',v:'6,9" AMOLED 120Hz'},{l:'Puce',v:'Snapdragon 8 Elite'},{l:'RAM',v:'12 Go'},{l:'S Pen',v:'Intégré'},{l:'Photo',v:'200 MP + zoom 10x'},{l:'Batterie',v:'5 000 mAh'}],bars:[{n:5,p:70},{n:4,p:20},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',1199),sp('fn',1249),sp('dt',1229),sp('bo',1219)],reviews:[{nm:'Power User M.',av:'PU',ac:'#1565C0',ab:'#081220',r:5,t:'Meilleure alternative iPhone',b:'Zoom 10x incroyable, S Pen pratique, Samsung AI utile. Meilleur Android du moment.',d:'12 mai 2026',s:'Amazon'}],sim:['s25p','s25','ip17pm','ip17p']},
+  {id:'s25p',n:'Samsung Galaxy S25+ 256 Go',br:'Samsung',cat:'smartphone',em:'📱',b:'new',r:4.5,rc:876,specs:[{l:'Écran',v:'6,7" AMOLED 120Hz'},{l:'Puce',v:'Snapdragon 8 Elite'},{l:'RAM',v:'12 Go'},{l:'Photo',v:'50 MP + zoom 5x'},{l:'Batterie',v:'4 900 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:67},{n:4,p:21},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',899),sp('fn',949),sp('dt',929),sp('bo',919)],reviews:[{nm:'Anis B.',av:'AB',ac:'#2E7D32',ab:'#0A180A',r:5,t:'Meilleur rapport Samsung',b:'Entre le S25 et l\'Ultra, le + est le choix parfait. Grand écran, excellente photo.',d:'8 mai 2026',s:'Fnac'}],sim:['s25u','s25','ip16pm','ip17p']},
+  {id:'s25',n:'Samsung Galaxy S25 128 Go',br:'Samsung',cat:'smartphone',em:'📱',b:'new',r:4.4,rc:654,specs:[{l:'Écran',v:'6,2" AMOLED 120Hz'},{l:'Puce',v:'Snapdragon 8 Elite'},{l:'RAM',v:'12 Go'},{l:'Photo',v:'50 MP'},{l:'Batterie',v:'4 000 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:63},{n:4,p:23},{n:3,p:8},{n:2,p:4},{n:1,p:2}],prices:[sp('az',699),sp('fn',749),sp('dt',729),sp('bo',719)],reviews:[{nm:'Lucas T.',av:'LT',ac:'#E65100',ab:'#2A1200',r:4,t:'Excellent smartphone Android',b:'Snapdragon 8 Elite fulgurant, écran magnifique. Meilleur Android sous 800€.',d:'5 mai 2026',s:'Amazon'}],sim:['s25p','s24fe','ip16','ip17']},
+  {id:'s24fe',n:'Samsung Galaxy S24 FE 128 Go',br:'Samsung',cat:'smartphone',em:'📱',b:'deal',r:4.2,rc:1234,specs:[{l:'Écran',v:'6,7" AMOLED 120Hz'},{l:'Puce',v:'Exynos 2500'},{l:'RAM',v:'8 Go'},{l:'Photo',v:'50 MP'},{l:'Batterie',v:'4 700 mAh'},{l:'5G',v:'Oui'}],bars:[{n:5,p:58},{n:4,p:25},{n:3,p:10},{n:2,p:4},{n:1,p:3}],prices:[sp('az',449),sp('fn',499),sp('dt',479),sp('bo',469)],reviews:[{nm:'Budget Gamer',av:'BG',ac:'#4A148C',ab:'#160828',r:4,t:'Meilleur Samsung abordable',b:'Grand écran, bonne photo, batterie solide. Excellent rapport qualité/prix.',d:'1 mai 2026',s:'Boulanger'}],sim:['s25','gw7','tabs10','ip16']},
+  {id:'tabs9p',n:'Samsung Galaxy Tab S9+',br:'Samsung',cat:'tablette',em:'📟',b:'pop',r:4.5,rc:876,specs:[{l:'Écran',v:'12,4" AMOLED 120Hz'},{l:'Puce',v:'Snapdragon 8 Gen 2'},{l:'RAM',v:'12 Go'},{l:'S Pen',v:'Inclus'},{l:'IP68',v:'Étanche'},{l:'Batterie',v:'10 090 mAh'}],bars:[{n:5,p:67},{n:4,p:22},{n:3,p:7},{n:2,p:2},{n:1,p:2}],prices:[sp('az',799),sp('fn',849),sp('dt',829),sp('bo',819)],reviews:[{nm:'Créatif Sam',av:'CS',ac:'#1565C0',ab:'#081220',r:5,t:'Meilleure tablette Android',b:'Écran AMOLED sublissime, S Pen inclus. La référence Android.',d:'8 mai 2026',s:'Amazon'}],sim:['tabs10','ipadpro11','ipadair13','s25u']},
+  {id:'tabs10',n:'Samsung Galaxy Tab S10 FE',br:'Samsung',cat:'tablette',em:'📟',b:'new',r:4.2,rc:432,specs:[{l:'Écran',v:'10,9" LCD 90Hz'},{l:'Puce',v:'Exynos 1580'},{l:'RAM',v:'8 Go'},{l:'S Pen',v:'Inclus'},{l:'Batterie',v:'8 000 mAh'},{l:'5G',v:'Option'}],bars:[{n:5,p:58},{n:4,p:25},{n:3,p:10},{n:2,p:5},{n:1,p:2}],prices:[sp('az',499),sp('fn',549),sp('dt',529),sp('bo',519)],reviews:[{nm:'Élève T.',av:'ET',ac:'#2E7D32',ab:'#0A180A',r:4,t:'Parfait pour les études',b:'S Pen inclus, bonne autonomie. Pour prendre des notes, idéal.',d:'5 mai 2026',s:'Fnac'}],sim:['tabs9p','ipada16','ipadair11','s25']},
+  {id:'gw7',n:'Samsung Galaxy Watch 7 44 mm',br:'Samsung',cat:'montre',em:'⌚',b:'pop',r:4.4,rc:1123,specs:[{l:'Écran',v:'AMOLED 1,5"'},{l:'Glycémie',v:'Mesure'},{l:'ECG',v:'Oui'},{l:'Autonomie',v:'40h'},{l:'IP68',v:'Étanche'},{l:'5G',v:'Option'}],bars:[{n:5,p:64},{n:4,p:23},{n:3,p:8},{n:2,p:3},{n:1,p:2}],prices:[sp('az',249),sp('fn',279),sp('dt',269),sp('bo',259)],reviews:[{nm:'Sportif K.',av:'SK',ac:'#E65100',ab:'#2A1200',r:4,t:'Meilleure montre Android',b:'40h d\'autonomie, mesure glycémie, ECG. La référence Android.',d:'10 mai 2026',s:'Amazon'}],sim:['gw7u','aw11','awse3','aw10']},
+  {id:'gw7u',n:'Samsung Galaxy Watch Ultra',br:'Samsung',cat:'montre',em:'⌚',b:'new',r:4.5,rc:543,specs:[{l:'Boîtier',v:'Titane 47mm'},{l:'Autonomie',v:'48h'},{l:'IP68+MIL',v:'Résistant'},{l:'GPS',v:'Multi-système'},{l:'Glycémie',v:'Oui'},{l:'ECG',v:'Oui'}],bars:[{n:5,p:66},{n:4,p:22},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',499),sp('fn',549),sp('dt',529),sp('bo',519)],reviews:[{nm:'Traileur N.',av:'TN',ac:'#1565C0',ab:'#081220',r:5,t:'Robuste et complète',b:'Titane, résistance militaire, GPS précis. Alternative sérieuse à l\'Apple Watch Ultra.',d:'8 mai 2026',s:'Amazon'}],sim:['gw7','awu3','aw11','aw10']},
+  {id:'sqled65',n:'Samsung QLED 4K 65 pouces',br:'Samsung',cat:'tv',em:'📺',b:'deal',r:4.4,rc:876,specs:[{l:'Résolution',v:'4K QLED'},{l:'Taille',v:'65"'},{l:'HDR',v:'HDR10+'},{l:'Refresh',v:'120Hz'},{l:'Smart TV',v:'Tizen OS'},{l:'Son',v:'40W OTS'}],bars:[{n:5,p:63},{n:4,p:23},{n:3,p:9},{n:2,p:3},{n:1,p:2}],prices:[sp('az',899),sp('fn',999),sp('dt',979),sp('bo',959)],reviews:[{nm:'Ciné-phile L.',av:'CL',ac:'#880E4F',ab:'#280A18',r:4,t:'Excellent rapport qualité/prix',b:'Pour moins de 900€, une TV 65" QLED. Image très belle, smart TV réactif.',d:'5 mai 2026',s:'Amazon'}],sim:['soled55','ps5pro','ps5slim','xboxsx']},
+  {id:'soled55',n:'Samsung OLED 4K 55 pouces',br:'Samsung',cat:'tv',em:'📺',b:'pop',r:4.6,rc:543,specs:[{l:'Résolution',v:'4K OLED'},{l:'Taille',v:'55"'},{l:'Refresh',v:'144Hz'},{l:'Temps rép.',v:'0,1ms'},{l:'HDMI 2.1',v:'4 ports'},{l:'Gaming',v:'G-Sync / FreeSync'}],bars:[{n:5,p:70},{n:4,p:20},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',1199),sp('fn',1299),sp('dt',1279),sp('bo',1259)],reviews:[{nm:'Gamer Pro T.',av:'GT',ac:'#2E7D32',ab:'#0A180A',r:5,t:'Parfaite pour la PS5',b:'0,1ms, 144Hz, 4 ports HDMI 2.1. Image OLED sublime. Rêve pour le gaming 4K.',d:'12 mai 2026',s:'Amazon'}],sim:['sqled65','ps5pro','xboxsx','rogst16']},
+  {id:'samsunglap',n:'Samsung Galaxy Book4 Pro 14 pouces',br:'Samsung',cat:'laptop',em:'💻',b:'new',r:4.3,rc:432,specs:[{l:'Écran',v:'14" AMOLED 120Hz'},{l:'CPU',v:'Intel Core Ultra 7'},{l:'RAM',v:'16 Go'},{l:'SSD',v:'512 Go'},{l:'Poids',v:'1,17 kg'},{l:'Autonomie',v:'15h'}],bars:[{n:5,p:60},{n:4,p:24},{n:3,p:10},{n:2,p:4},{n:1,p:2}],prices:[sp('az',1199),sp('fn',1299),sp('dt',1249),sp('bo',1239)],reviews:[{nm:'Ingénieur S.',av:'IS',ac:'#1565C0',ab:'#081220',r:4,t:'Léger et excellent écran AMOLED',b:'Écran AMOLED magnifique, très léger. Bon rapport qualité/prix face au MacBook Air.',d:'3 mai 2026',s:'Amazon'}],sim:['mba13','zen14','zenpro','mba15']},
+  // BOSE
+  {id:'boseqcu',n:'Bose QuietComfort Ultra Headphones',br:'Bose',cat:'audio',em:'🎧',b:'pop',r:4.6,rc:1876,specs:[{l:'ANC',v:'Custom Mode'},{l:'Spatial Audio',v:'Head tracking'},{l:'Autonomie',v:'24h'},{l:'Immersive',v:'Bose Immersive Audio'},{l:'Poids',v:'250g'},{l:'Charge',v:'USB-C'}],bars:[{n:5,p:71},{n:4,p:19},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',369),sp('fn',429),sp('dt',409),sp('bo',399)],reviews:[{nm:'Audiophile S.',av:'AS',ac:'#1565C0',ab:'#081220',r:5,t:'Summum de l\'audio casque',b:'Bose Immersive Audio bluffant. ANC Custom Mode ultra précis. Le meilleur casque testé.',d:'12 mai 2026',s:'Amazon'}],sim:['boseqc45','apmax','sonyxm5','bosesl2']},
+  {id:'boseqc45',n:'Bose QuietComfort 45',br:'Bose',cat:'audio',em:'🎧',b:'deal',r:4.5,rc:3124,specs:[{l:'ANC',v:'World-class'},{l:'Modes',v:'Conscious / Quiet'},{l:'Autonomie',v:'24h'},{l:'Charge',v:'USB-C'},{l:'Pliable',v:'Oui'},{l:'Poids',v:'240g'}],bars:[{n:5,p:68},{n:4,p:20},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',239),sp('fn',279),sp('dt',269),sp('bo',259)],reviews:[{nm:'Voyageur Fréq.',av:'VF',ac:'#880E4F',ab:'#280A18',r:5,t:'ANC le plus efficace en avion',b:'Dans l\'avion, tout disparaît. Confort après 8h parfait. Meilleur casque voyage.',d:'10 mai 2026',s:'Amazon'}],sim:['boseqcu','apmax','sonyxm5','jblt770nc']},
+  {id:'boseucears',n:'Bose QuietComfort Ultra Earbuds',br:'Bose',cat:'audio',em:'🎵',b:'pop',r:4.5,rc:987,specs:[{l:'ANC',v:'Immersive'},{l:'Spatial Audio',v:'Oui'},{l:'Autonomie',v:'6h + 18h boîtier'},{l:'IPX4',v:'Résistant'},{l:'Charge',v:'USB-C'},{l:'Poids',v:'6,2g/écouteur'}],bars:[{n:5,p:68},{n:4,p:20},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',249),sp('fn',299),sp('dt',279),sp('bo',269)],reviews:[{nm:'Business Trav.',av:'BT',ac:'#2E7D32',ab:'#0A180A',r:5,t:'Meilleur ANC en écouteurs',b:'ANC impressionnant pour des intra. Spatial Audio haute qualité.',d:'6 mai 2026',s:'Amazon'}],sim:['boseqcu','boseqc45','app3','sonyxm5']},
+  {id:'bosesl2',n:'Bose SoundLink Max',br:'Bose',cat:'audio',em:'🔊',b:'new',r:4.5,rc:654,specs:[{l:'Autonomie',v:'20h'},{l:'IP67',v:'Étanche'},{l:'Bluetooth',v:'Multi-point'},{l:'Charge',v:'USB-C'},{l:'Puissance',v:'Haute fidélité'},{l:'Poids',v:'1,1kg'}],bars:[{n:5,p:67},{n:4,p:21},{n:3,p:8},{n:2,p:3},{n:1,p:1}],prices:[sp('az',389),sp('fn',429),sp('dt',419),sp('bo',409)],reviews:[{nm:'Audiophile Ext.',av:'AE',ac:'#4A148C',ab:'#160828',r:5,t:'Meilleure enceinte portable premium',b:'Son de référence. Basses profondes, mids clairs, aigus précis. Étanche, premium.',d:'8 mai 2026',s:'Amazon'}],sim:['boseflex','jblc5','jblx3','boseqcu']},
+  {id:'boseflex',n:'Bose SoundLink Flex',br:'Bose',cat:'audio',em:'🔊',b:'pop',r:4.4,rc:2341,specs:[{l:'Étanchéité',v:'IP67 + flotte'},{l:'Autonomie',v:'12h'},{l:'PositionIQ',v:'Auto-orientation'},{l:'Bluetooth',v:'5.1'},{l:'Charge',v:'USB-C'},{l:'Poids',v:'590g'}],bars:[{n:5,p:64},{n:4,p:22},{n:3,p:9},{n:2,p:3},{n:1,p:2}],prices:[sp('az',129),sp('fn',149),sp('dt',139),sp('bo',135)],reviews:[{nm:'Kayakiste P.',av:'KP',ac:'#01579B',ab:'#081620',r:5,t:'Elle flotte !',b:'Testée en kayak, tombée dans l\'eau — aucun problème. Son vraiment bon pour enceinte outdoor.',d:'5 mai 2026',s:'Amazon'}],sim:['bosesl2','jblf6','jblc5','jblx3']},
+  // JBL
+  {id:'jblc5',n:'JBL Charge 5',br:'JBL',cat:'audio',em:'🔊',b:'pop',r:4.5,rc:3241,specs:[{l:'Puissance',v:'40W'},{l:'Autonomie',v:'20h'},{l:'IP67',v:'Étanche'},{l:'Power Bank',v:'Oui'},{l:'Connect+',v:'100+ enceintes'},{l:'Poids',v:'960g'}],bars:[{n:5,p:66},{n:4,p:22},{n:3,p:8},{n:2,p:3},{n:1,p:1}],prices:[sp('az',149),sp('fn',169),sp('dt',159),sp('bo',155)],reviews:[{nm:'Fêtard M.',av:'FM',ac:'#E65100',ab:'#2A1200',r:5,t:'L\'enceinte portable ultime',b:'Son puissant, étanche, recharge le téléphone. 20h de batterie réelles.',d:'8 mai 2026',s:'Amazon'}],sim:['jblx3','jblf6','bosesl2','boseflex']},
+  {id:'jblf6',n:'JBL Flip 6',br:'JBL',cat:'audio',em:'🔊',b:'deal',r:4.4,rc:4321,specs:[{l:'Puissance',v:'20W'},{l:'Autonomie',v:'12h'},{l:'IP67',v:'Étanche'},{l:'Poids',v:'530g'},{l:'Connect+',v:'Oui'},{l:'Prix',v:'Compact abordable'}],bars:[{n:5,p:63},{n:4,p:23},{n:3,p:9},{n:2,p:3},{n:1,p:2}],prices:[sp('az',89),sp('fn',109),sp('dt',99),sp('bo',95)],reviews:[{nm:'Plage S.',av:'PS',ac:'#01579B',ab:'#081620',r:4,t:'Parfaite pour la plage',b:'Légère, étanche, son correct. Meilleure enceinte portable pas chère.',d:'5 mai 2026',s:'Amazon'}],sim:['jblc5','jblx3','boseflex','jblt770nc']},
+  {id:'jblx3',n:'JBL Xtreme 3',br:'JBL',cat:'audio',em:'🔊',b:'pop',r:4.5,rc:1876,specs:[{l:'Puissance',v:'100W'},{l:'Autonomie',v:'15h'},{l:'IP67',v:'Étanche'},{l:'Poids',v:'1,9 kg'},{l:'Connect+',v:'Oui'},{l:'Basses',v:'Exceptionnelles'}],bars:[{n:5,p:68},{n:4,p:20},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',219),sp('fn',249),sp('dt',239),sp('bo',229)],reviews:[{nm:'Festival B.',av:'FB',ac:'#4A148C',ab:'#160828',r:5,t:'Monstre de son',b:'100W dans une enceinte portable. Basses physiques, étanchéité parfaite.',d:'10 mai 2026',s:'Amazon'}],sim:['jblc5','bosesl2','jblf6','boseflex']},
+  {id:'jblt770nc',n:'JBL Tune 770NC',br:'JBL',cat:'audio',em:'🎧',b:'deal',r:4.1,rc:2341,specs:[{l:'ANC',v:'Adaptive'},{l:'Autonomie',v:'44h'},{l:'Charge rapide',v:'5 min = 3h'},{l:'Poids',v:'200g'},{l:'Bluetooth',v:'5.3'},{l:'Prix',v:'Très abordable'}],bars:[{n:5,p:53},{n:4,p:26},{n:3,p:12},{n:2,p:6},{n:1,p:3}],prices:[sp('az',69),sp('fn',89),sp('dt',79),sp('bo',75)],reviews:[{nm:'Lycéen A.',av:'LA',ac:'#1565C0',ab:'#081220',r:4,t:'Meilleur casque budget',b:'Pour 69€, ANC + 44h. Pour commencer l\'ANC sans se ruiner.',d:'3 mai 2026',s:'Amazon'}],sim:['boseqc45','app2','jbllive2','jblf6']},
+  {id:'jbllive2',n:'JBL Live Pro 2 TWS',br:'JBL',cat:'audio',em:'🎵',b:'pop',r:4.2,rc:1543,specs:[{l:'ANC',v:'Adaptive'},{l:'Autonomie',v:'9h + 27h boîtier'},{l:'Design',v:'Intra-auriculaire'},{l:'Résistance',v:'IPX5'},{l:'Bluetooth',v:'5.3'},{l:'IA',v:'Commandes vocales'}],bars:[{n:5,p:56},{n:4,p:26},{n:3,p:11},{n:2,p:5},{n:1,p:2}],prices:[sp('az',99),sp('fn',129),sp('dt',119),sp('bo',109)],reviews:[{nm:'Runner C.',av:'RC',ac:'#2E7D32',ab:'#0A180A',r:4,t:'Bons pour le sport',b:'ANC correct, tiennent bien au running. Excellent choix mi-gamme.',d:'1 mai 2026',s:'Amazon'}],sim:['app4','app2','jblt770nc','boseqc45']},
+  // SONY
+  {id:'ps5pro',n:'PlayStation 5 Pro',br:'Sony',cat:'gaming',em:'🎮',b:'new',r:4.7,rc:2341,specs:[{l:'GPU',v:'AMD RDNA 4 (45 CU)'},{l:'CPU',v:'AMD Zen 2 · 8 cœurs'},{l:'RAM',v:'16 Go GDDR6'},{l:'SSD',v:'2 To NVMe'},{l:'8K Gaming',v:'Oui'},{l:'Ray Tracing',v:'Amélioré'}],bars:[{n:5,p:76},{n:4,p:17},{n:3,p:5},{n:2,p:1},{n:1,p:1}],prices:[sp('az',699),sp('fn',749),sp('dt',729),sp('bo',719)],reviews:[{nm:'Gamer Hardcore',av:'GH',ac:'#1565C0',ab:'#081220',r:5,t:'La PS5 ultime',b:'4K/60fps natif sans compromis. Ray tracing hallucinant. 2 To de base. La console parfaite.',d:'12 mai 2026',s:'Amazon'}],sim:['ps5slim','dse','gta6ps5','soled55']},
+  {id:'ps5slim',n:'PlayStation 5 Slim',br:'Sony',cat:'gaming',em:'🎮',b:'pop',r:4.6,rc:4321,specs:[{l:'GPU',v:'AMD RDNA 2'},{l:'RAM',v:'16 Go GDDR6'},{l:'SSD',v:'1 To NVMe'},{l:'4K',v:'120fps'},{l:'Ray Tracing',v:'Oui'},{l:'Taille',v:'−30% vs PS5'}],bars:[{n:5,p:73},{n:4,p:19},{n:3,p:5},{n:2,p:2},{n:1,p:1}],prices:[sp('az',419),sp('fn',469),sp('dt',449),sp('bo',439)],reviews:[{nm:'Casual Gamer',av:'CG',ac:'#2E7D32',ab:'#0A180A',r:5,t:'Meilleure console du marché',b:'Spider-Man 2, GTA VI — tout tourne magnifiquement. Design compact, silencieuse.',d:'10 mai 2026',s:'Fnac'}],sim:['ps5pro','dse','ds','gta6ps5']},
+  {id:'dse',n:'Manette DualSense Edge',br:'Sony',cat:'gaming',em:'🕹️',b:'pop',r:4.5,rc:1543,specs:[{l:'Type',v:'Pro Controller'},{l:'Sticks',v:'Interchangeables'},{l:'Gâchettes',v:'Débattement réglable'},{l:'Boutons',v:'Remappables'},{l:'Profils',v:'Personnalisables'},{l:'Batterie',v:'Renforcée'}],bars:[{n:5,p:67},{n:4,p:21},{n:3,p:8},{n:2,p:3},{n:1,p:1}],prices:[sp('az',199),sp('fn',219),sp('dt',209),sp('bo',205)],reviews:[{nm:'Pro Gamer K.',av:'PG',ac:'#880E4F',ab:'#280A18',r:5,t:'Manette pro parfaite',b:'Gâchettes à débattement réduit — game changer pour les FPS. Sticks interchangeables.',d:'8 mai 2026',s:'Amazon'}],sim:['ds','ps5pro','ps5slim','gta6ps5']},
+  {id:'ds',n:'Manette DualSense',br:'Sony',cat:'gaming',em:'🕹️',b:'deal',r:4.6,rc:6543,specs:[{l:'Haptic',v:'Retour haptique'},{l:'Gâchettes',v:'Adaptatives'},{l:'Batterie',v:'1560 mAh'},{l:'USB-C',v:'Charge rapide'},{l:'Micro',v:'Intégré'},{l:'Bluetooth',v:'5.1'}],bars:[{n:5,p:72},{n:4,p:18},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',59),sp('fn',69),sp('dt',65),sp('bo',62)],reviews:[{nm:'Co-op Player',av:'CP',ac:'#4A148C',ab:'#160828',r:5,t:'Meilleure manette de jeu',b:'Gâchettes adaptatives — révolution. On sent la résistance d\'un arc. Haptic feedback immersif.',d:'5 mai 2026',s:'Amazon'}],sim:['dse','ps5slim','ps5pro','gta6ps5']},
+  {id:'gta6ps5',n:'GTA VI (PS5)',br:'Sony',cat:'gaming',em:'🎯',b:'new',r:4.8,rc:8765,specs:[{l:'Genre',v:'Open World / Action'},{l:'Plateforme',v:'PS5 / PS5 Pro'},{l:'Résolution',v:'4K 60fps'},{l:'Multi',v:'En ligne'},{l:'Stockage',v:'~150 Go'},{l:'PEGI',v:'18+'}],bars:[{n:5,p:82},{n:4,p:12},{n:3,p:4},{n:2,p:1},{n:1,p:1}],prices:[sp('az',79),sp('fn',89),sp('dt',85),sp('bo',82)],reviews:[{nm:'Fan GTA',av:'FG',ac:'#E65100',ab:'#2A1200',r:5,t:'Le jeu du siècle',b:'Vice City recréée de façon époustouflante. Narration adulte et brillante. On attendait depuis 12 ans.',d:'15 mai 2026',s:'Amazon'}],sim:['spiderman2','ps5pro','ps5slim','dse']},
+  {id:'spiderman2',n:'Marvel\'s Spider-Man 2 (PS5)',br:'Sony',cat:'gaming',em:'🎯',b:'deal',r:4.7,rc:5432,specs:[{l:'Genre',v:'Action / Aventure'},{l:'Plateforme',v:'PS5 exclusif'},{l:'Résolution',v:'4K 60fps'},{l:'Venom',v:'Jouable'},{l:'Durée',v:'~20h'},{l:'Stockage',v:'~100 Go'}],bars:[{n:5,p:76},{n:4,p:16},{n:3,p:5},{n:2,p:2},{n:1,p:1}],prices:[sp('az',39),sp('fn',49),sp('dt',45),sp('bo',42)],reviews:[{nm:'Marvel Fan L.',av:'MF',ac:'#1565C0',ab:'#081220',r:5,t:'Chef-d\'œuvre absolu',b:'Deux Spider-Man jouables, Venom impressionnant. Meilleur exclusif PlayStation.',d:'10 mai 2026',s:'Fnac'}],sim:['gta6ps5','ps5slim','ps5pro','ds']},
+  {id:'sonyxm5',n:'Sony WH-1000XM5',br:'Sony',cat:'audio',em:'🎧',b:'pop',r:4.7,rc:4231,specs:[{l:'ANC',v:'8 micros + 2 puces'},{l:'Son',v:'30mm driver'},{l:'Autonomie',v:'30h'},{l:'Charge rapide',v:'3 min = 3h'},{l:'Multi-point',v:'2 appareils'},{l:'Poids',v:'250g'}],bars:[{n:5,p:74},{n:4,p:18},{n:3,p:5},{n:2,p:2},{n:1,p:1}],prices:[sp('az',279),sp('fn',329),sp('dt',309),sp('bo',299)],reviews:[{nm:'Audiophile R.',av:'AR',ac:'#37474F',ab:'#0A1014',r:5,t:'Le meilleur casque du marché',b:'ANC phénoménal, son d\'une précision rare, 30h d\'autonomie. Le standard de la catégorie.',d:'11 mai 2026',s:'Amazon'}],sim:['boseqcu','boseqc45','apmax','jblt770nc']},
+  // NINTENDO
+  {id:'sw2',n:'Nintendo Switch 2',br:'Nintendo',cat:'gaming',em:'🕹️',b:'new',r:4.7,rc:3241,specs:[{l:'Écran',v:'8" LCD 1080p 60fps'},{l:'4K',v:'Docké'},{l:'RAM',v:'12 Go'},{l:'Stockage',v:'256 Go'},{l:'Autonomie',v:'4-6h'},{l:'HDR',v:'Oui'}],bars:[{n:5,p:74},{n:4,p:18},{n:3,p:5},{n:2,p:2},{n:1,p:1}],prices:[sp('az',449),sp('fn',499),sp('dt',479),sp('bo',469)],reviews:[{nm:'Famille G.',av:'FG',ac:'#1B5E20',ab:'#0A180A',r:5,t:'Enfin la Switch digne de 2026',b:'Performances incroyables, Zelda en 4K, Joy-Con améliorés. Nintendo a frappé fort.',d:'14 mai 2026',s:'Amazon'}],sim:['swoled','swlite','joycon2','mariokartwii']},
+  {id:'swoled',n:'Nintendo Switch OLED',br:'Nintendo',cat:'gaming',em:'🕹️',b:'deal',r:4.5,rc:5432,specs:[{l:'Écran',v:'7" OLED'},{l:'Dock',v:'Port LAN inclus'},{l:'Stockage',v:'64 Go'},{l:'Autonomie',v:'4,5-9h'},{l:'Mode TV',v:'1080p'},{l:'Design',v:'Blanc épuré'}],bars:[{n:5,p:68},{n:4,p:20},{n:3,p:8},{n:2,p:3},{n:1,p:1}],prices:[sp('az',299),sp('fn',329),sp('dt',319),sp('bo',309)],reviews:[{nm:'Gamer Nomade',av:'GN',ac:'#E65100',ab:'#2A1200',r:5,t:'L\'écran OLED change tout',b:'Écran OLED sublime pour jouer en portable. La meilleure Nintendo portable.',d:'8 mai 2026',s:'Fnac'}],sim:['sw2','swlite','joycon2','zelda']},
+  {id:'swlite',n:'Nintendo Switch Lite',br:'Nintendo',cat:'gaming',em:'🕹️',b:'deal',r:4.3,rc:3876,specs:[{l:'Écran',v:'5,5" LCD'},{l:'Mode',v:'Portable uniquement'},{l:'Autonomie',v:'3-7h'},{l:'Poids',v:'275g'},{l:'Couleurs',v:'5 coloris'},{l:'Prix',v:'Compact abordable'}],bars:[{n:5,p:60},{n:4,p:23},{n:3,p:10},{n:2,p:5},{n:1,p:2}],prices:[sp('az',199),sp('fn',219),sp('dt',209),sp('bo',205)],reviews:[{nm:'Lycéenne A.',av:'LA',ac:'#4A148C',ab:'#160828',r:4,t:'Parfait pour voyager',b:'Léger, compact, robuste. Pour jouer dans les transports, idéal.',d:'5 mai 2026',s:'Amazon'}],sim:['swoled','sw2','joycon2','mario']},
+  {id:'joycon2',n:'Joy-Con 2 (paire)',br:'Nintendo',cat:'gaming',em:'🕹️',b:'new',r:4.5,rc:1234,specs:[{l:'Stick',v:'Magnétique (anti-drift)'},{l:'Bouton C',v:'GameChat'},{l:'IR Camera',v:'Améliorée'},{l:'Haptique',v:'HD Rumble'},{l:'Compatibilité',v:'Switch 2'},{l:'Batterie',v:'Plus longue'}],bars:[{n:5,p:66},{n:4,p:22},{n:3,p:8},{n:2,p:3},{n:1,p:1}],prices:[sp('az',79),sp('fn',89),sp('dt',84),sp('bo',82)],reviews:[{nm:'Gamer Famille',av:'GF',ac:'#1565C0',ab:'#081220',r:5,t:'Fini le stick drift !',b:'Sticks magnétiques règlent définitivement le problème. HD Rumble excellent.',d:'10 mai 2026',s:'Amazon'}],sim:['sw2','swoled','procon','mariokartwii']},
+  {id:'procon',n:'Manette Pro Switch 2',br:'Nintendo',cat:'gaming',em:'🕹️',b:'new',r:4.6,rc:876,specs:[{l:'Type',v:'Manette classique'},{l:'Autonomie',v:'40h'},{l:'NFC',v:'Amiibo'},{l:'Gyroscope',v:'6 axes'},{l:'Bluetooth',v:'Oui'},{l:'USB-C',v:'Charge'}],bars:[{n:5,p:70},{n:4,p:20},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',74),sp('fn',84),sp('dt',79),sp('bo',77)],reviews:[{nm:'Nintendo Fan',av:'NF',ac:'#2E7D32',ab:'#0A180A',r:5,t:'Meilleure manette Switch',b:'Confort parfait. 40h de batterie, excellent pour les jeux de salon.',d:'8 mai 2026',s:'Fnac'}],sim:['joycon2','sw2','swoled','zelda']},
+  {id:'zelda',n:'The Legend of Zelda : Tears of the Kingdom',br:'Nintendo',cat:'gaming',em:'🎯',b:'pop',r:4.9,rc:12453,specs:[{l:'Genre',v:'Action-aventure open world'},{l:'Plateforme',v:'Switch / Switch 2'},{l:'Durée',v:'50h+ 100%'},{l:'Monde',v:'Hyrule + Profondeurs'},{l:'PEGI',v:'12'},{l:'Co-op',v:'Non'}],bars:[{n:5,p:85},{n:4,p:11},{n:3,p:3},{n:2,p:1},{n:1,p:0}],prices:[sp('az',49),sp('fn',59),sp('dt',55),sp('bo',53)],reviews:[{nm:'RPG Legend',av:'RL',ac:'#880E4F',ab:'#280A18',r:5,t:'Jeu de la génération',b:'Open world magistral, physique révolutionnaire. Le meilleur jeu Nintendo depuis Ocarina of Time.',d:'12 mai 2026',s:'Amazon'}],sim:['mariokartwii','mario','sw2','swoled']},
+  {id:'mariokartwii',n:'Mario Kart World',br:'Nintendo',cat:'gaming',em:'🎯',b:'new',r:4.7,rc:4321,specs:[{l:'Genre',v:'Course'},{l:'Plateforme',v:'Switch 2 exclusif'},{l:'Circuits',v:'40+ circuits'},{l:'Joueurs',v:'4 local / 12 online'},{l:'Résolution',v:'4K docké'},{l:'PEGI',v:'3'}],bars:[{n:5,p:75},{n:4,p:17},{n:3,p:5},{n:2,p:2},{n:1,p:1}],prices:[sp('az',69),sp('fn',79),sp('dt',74),sp('bo',72)],reviews:[{nm:'Famille Jeux',av:'FJ',ac:'#E65100',ab:'#2A1200',r:5,t:'Meilleur Mario Kart',b:'40+ circuits, résolution 4K, mode online parfait. Quintessence du jeu de soirée.',d:'9 mai 2026',s:'Fnac'}],sim:['zelda','mario','sw2','joycon2']},
+  {id:'mario',n:'Super Mario Odyssey',br:'Nintendo',cat:'gaming',em:'🎯',b:'deal',r:4.8,rc:8765,specs:[{l:'Genre',v:'Plateforme 3D'},{l:'Plateforme',v:'Switch'},{l:'Lunes',v:'880+'},{l:'Mondes',v:'17'},{l:'PEGI',v:'3'},{l:'Co-op',v:'2 joueurs local'}],bars:[{n:5,p:80},{n:4,p:14},{n:3,p:4},{n:2,p:1},{n:1,p:1}],prices:[sp('az',39),sp('fn',49),sp('dt',44),sp('bo',42)],reviews:[{nm:'Classique Gamer',av:'CG',ac:'#1565C0',ab:'#081220',r:5,t:'Classique indémodable',b:'Créativité sans limite, niveaux magnifiques, idéal pour tous les âges.',d:'5 mai 2026',s:'Amazon'}],sim:['zelda','mariokartwii','swoled','sw2']},
+  // ASUS
+  {id:'rogz14',n:'ASUS ROG Zephyrus G14 (2024)',br:'ASUS',cat:'laptop',em:'💻',b:'pop',r:4.6,rc:1234,specs:[{l:'Écran',v:'14" OLED 165Hz'},{l:'CPU',v:'Ryzen 9 8945HS'},{l:'GPU',v:'RTX 4070 8 Go'},{l:'RAM',v:'16 Go DDR5'},{l:'SSD',v:'1 To NVMe'},{l:'Poids',v:'1,65 kg'}],bars:[{n:5,p:70},{n:4,p:20},{n:3,p:6},{n:2,p:2},{n:1,p:2}],prices:[sp('az',1479),sp('fn',1599),sp('dt',1549),sp('bo',1529)],reviews:[{nm:'Gamer Étudiant',av:'GE',ac:'#2E7D32',ab:'#0A180A',r:5,t:'Meilleur gaming laptop compact',b:'Léger, écran OLED sublime, RTX 4070 excellent. Cyberpunk en ultra sans problème.',d:'10 mai 2026',s:'Amazon'}],sim:['rogst16','zenpro','mbp14','zen14']},
+  {id:'rogst16',n:'ASUS ROG Strix G16 (2024)',br:'ASUS',cat:'laptop',em:'💻',b:'pop',r:4.5,rc:876,specs:[{l:'Écran',v:'16" IPS 165Hz'},{l:'CPU',v:'Intel i9-14900HX'},{l:'GPU',v:'RTX 4080 12 Go'},{l:'RAM',v:'32 Go DDR5'},{l:'SSD',v:'1 To NVMe'},{l:'Poids',v:'2,5 kg'}],bars:[{n:5,p:66},{n:4,p:21},{n:3,p:8},{n:2,p:3},{n:1,p:2}],prices:[sp('az',1299),sp('fn',1399),sp('dt',1379),sp('bo',1359)],reviews:[{nm:'Streamer Pro',av:'SP',ac:'#880E4F',ab:'#280A18',r:5,t:'Bête de guerre',b:'i9 + RTX 4080, rien ne lui résiste. Streaming + gaming simultanément sans lag.',d:'8 mai 2026',s:'Amazon'}],sim:['rogz14','zenpro','mbp14','soled55']},
+  {id:'zenpro',n:'ASUS ZenBook Pro 14 OLED',br:'ASUS',cat:'laptop',em:'💻',b:'new',r:4.4,rc:654,specs:[{l:'Écran',v:'14,5" OLED 2.8K 120Hz'},{l:'CPU',v:'Intel Core Ultra 7'},{l:'GPU',v:'RTX 4060 8 Go'},{l:'RAM',v:'16 Go'},{l:'SSD',v:'1 To'},{l:'Poids',v:'1,7 kg'}],bars:[{n:5,p:63},{n:4,p:23},{n:3,p:9},{n:2,p:3},{n:1,p:2}],prices:[sp('az',1199),sp('fn',1299),sp('dt',1249),sp('bo',1239)],reviews:[{nm:'Designer UX',av:'DU',ac:'#4A148C',ab:'#160828',r:4,t:'Parfait pour la créa pro',b:'Écran OLED parfait pour le design. Build quality premium. Bonne alternative au MacBook Pro.',d:'5 mai 2026',s:'Amazon'}],sim:['rogz14','zen14','mba15','mbp14']},
+  {id:'zen14',n:'ASUS ZenBook 14 OLED',br:'ASUS',cat:'laptop',em:'💻',b:'deal',r:4.3,rc:1123,specs:[{l:'Écran',v:'14" OLED 2.8K 90Hz'},{l:'CPU',v:'Ryzen 7 7745HX'},{l:'GPU',v:'RTX 3050 4 Go'},{l:'RAM',v:'16 Go'},{l:'SSD',v:'512 Go'},{l:'Poids',v:'1,39 kg'}],bars:[{n:5,p:60},{n:4,p:24},{n:3,p:10},{n:2,p:4},{n:1,p:2}],prices:[sp('az',799),sp('fn',879),sp('dt',849),sp('bo',839)],reviews:[{nm:'Étudiant Ing.',av:'EI',ac:'#E65100',ab:'#2A1200',r:4,t:'Bon ultrabook pour les études',b:'Léger, écran OLED magnifique, bonne autonomie. Parfait au quotidien.',d:'1 mai 2026',s:'Fnac'}],sim:['zenpro','rogz14','mba13','vivo16']},
+  {id:'vivo16',n:'ASUS Vivobook 16 (2024)',br:'ASUS',cat:'laptop',em:'💻',b:'deal',r:4.1,rc:1876,specs:[{l:'Écran',v:'16" FHD 60Hz'},{l:'CPU',v:'Ryzen 5 7530U'},{l:'RAM',v:'8 Go'},{l:'SSD',v:'512 Go'},{l:'GPU',v:'Radeon intégré'},{l:'Poids',v:'1,88 kg'}],bars:[{n:5,p:52},{n:4,p:27},{n:3,p:13},{n:2,p:5},{n:1,p:3}],prices:[sp('az',549),sp('fn',599),sp('dt',579),sp('bo',569)],reviews:[{nm:'Parent Bud.',av:'PB',ac:'#33691E',ab:'#0A180A',r:4,t:'Parfait usage familial',b:'Grand écran, bon prix, Windows 11 fluide. Pour le web, les cours et les séries, parfait.',d:'28 avril 2026',s:'Boulanger'}],sim:['zen14','rogz14','mba13','samsunglap']},
+  // XBOX
+  {id:'xboxsx',n:'Xbox Series X',br:'Xbox',cat:'gaming',em:'🎯',b:'pop',r:4.5,rc:3241,specs:[{l:'GPU',v:'AMD RDNA 2 (52 CU)'},{l:'CPU',v:'AMD Zen 2 · 8 cœurs'},{l:'RAM',v:'16 Go GDDR6'},{l:'SSD',v:'1 To NVMe'},{l:'4K',v:'120fps'},{l:'Rétrocompatibilité',v:'Totale'}],bars:[{n:5,p:67},{n:4,p:21},{n:3,p:8},{n:2,p:3},{n:1,p:1}],prices:[sp('az',449),sp('fn',499),sp('dt',479),sp('bo',469)],reviews:[{nm:'Xbox Fan P.',av:'XF',ac:'#107C10',ab:'#0A1A0A',r:5,t:'Console très puissante',b:'4K/120fps magnifique, Game Pass révolution, rétrocompatibilité totale. Indispensable si vous avez déjà des jeux Xbox.',d:'10 mai 2026',s:'Amazon'}],sim:['xboxss','xboxctrl','gamepass','ps5slim']},
+  {id:'xboxss',n:'Xbox Series S',br:'Xbox',cat:'gaming',em:'🎯',b:'deal',r:4.2,rc:2543,specs:[{l:'GPU',v:'AMD RDNA 2 (20 CU)'},{l:'CPU',v:'AMD Zen 2 · 8 cœurs'},{l:'RAM',v:'10 Go GDDR6'},{l:'SSD',v:'512 Go'},{l:'1440p',v:'120fps'},{l:'Prix',v:'La plus abordable'}],bars:[{n:5,p:58},{n:4,p:24},{n:3,p:11},{n:2,p:5},{n:1,p:2}],prices:[sp('az',249),sp('fn',279),sp('dt',269),sp('bo',259)],reviews:[{nm:'Budget Gamer',av:'BG',ac:'#4A148C',ab:'#160828',r:4,t:'Meilleur rapport qualité/prix console',b:'Game Pass + Xbox Series S = setup gaming moins cher pour jouer aux derniers AAA.',d:'5 mai 2026',s:'Amazon'}],sim:['xboxsx','xboxctrl','gamepass','swlite']},
+  {id:'xboxctrl',n:'Manette Xbox Series X|S',br:'Xbox',cat:'gaming',em:'🕹️',b:'pop',r:4.5,rc:4321,specs:[{l:'Connexion',v:'Bluetooth + USB-C'},{l:'Grips',v:'Texturé'},{l:'Bumpers',v:'Redesignés'},{l:'Compatibilité',v:'PC + Xbox + Mobile'},{l:'Autonomie',v:'40h piles AA'},{l:'Jack',v:'3,5mm'}],bars:[{n:5,p:68},{n:4,p:20},{n:3,p:7},{n:2,p:3},{n:1,p:2}],prices:[sp('az',49),sp('fn',59),sp('dt',55),sp('bo',53)],reviews:[{nm:'PC Gamer T.',av:'PG',ac:'#1565C0',ab:'#081220',r:5,t:'Parfaite sur PC aussi',b:'Meilleure manette pour PC. Compatible nativement Windows, Bluetooth excellent. Grip amélioré.',d:'8 mai 2026',s:'Amazon'}],sim:['xboxsx','xboxss','gamepass','halo']},
+  {id:'gamepass',n:'Xbox Game Pass Ultimate 12 mois',br:'Xbox',cat:'gaming',em:'🎯',b:'pop',r:4.7,rc:6543,specs:[{l:'Jeux',v:'100+ AAA inclus'},{l:'EA Play',v:'Inclus'},{l:'Cloud Gaming',v:'Oui'},{l:'PC + Console',v:'Les deux'},{l:'Durée',v:'12 mois'},{l:'Nouveaux jeux',v:'Dès le lancement'}],bars:[{n:5,p:74},{n:4,p:18},{n:3,p:5},{n:2,p:2},{n:1,p:1}],prices:[sp('az',99),sp('fn',119),sp('dt',109),sp('bo',105)],reviews:[{nm:'Abonné Fidèle',av:'AF',ac:'#107C10',ab:'#0A1A0A',r:5,t:'Meilleur abonnement gaming',b:'100+ jeux dès le lancement, EA Play, cloud gaming. Pour le prix d\'un jeu, une bibliothèque entière.',d:'12 mai 2026',s:'Amazon'}],sim:['xboxsx','xboxss','xboxctrl','halo']},
+  {id:'halo',n:'Halo Infinite (Xbox / PC)',br:'Xbox',cat:'gaming',em:'🎯',b:'deal',r:4.3,rc:3241,specs:[{l:'Genre',v:'FPS'},{l:'Plateforme',v:'Xbox + PC'},{l:'Campagne',v:'Open world'},{l:'Multi',v:'Free-to-play'},{l:'4K',v:'60fps'},{l:'Game Pass',v:'Inclus'}],bars:[{n:5,p:60},{n:4,p:22},{n:3,p:10},{n:2,p:5},{n:1,p:3}],prices:[sp('az',29),sp('fn',39),sp('dt',34),sp('bo',32)],reviews:[{nm:'FPS Pro G.',av:'FP',ac:'#880E4F',ab:'#280A18',r:4,t:'Halo de retour au sommet',b:'Campagne excellente en open world, multi équilibré. Inclus dans Game Pass.',d:'5 mai 2026',s:'Amazon'}],sim:['xboxsx','gamepass','xboxctrl','gta6ps5']},
+];
+
+const PM={};P.forEach(p=>PM[p.id]=p);
+const minP=p=>Math.min(...p.prices.map(x=>x.p));
+const maxP=p=>Math.max(...p.prices.map(x=>x.p));
+const eco=p=>maxP(p)-minP(p);
+
+let cCat='all',cBr='all',chartI=null,curP=null;
+
+// ── NAVIGATION ──
+function go(pg,id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  ['nl-h','nl-c','nl-b'].forEach(x=>document.getElementById(x).classList.remove('act'));
+  document.getElementById('nav-back').style.display='none';
+  document.getElementById('nav-bc').style.display='none';
+  window.scrollTo({top:0,behavior:'instant'});
+  if(pg==='home'){document.getElementById('pg-home').classList.add('on');document.getElementById('nl-h').classList.add('act');}
+  else if(pg==='comp'){document.getElementById('pg-comp').classList.add('on');document.getElementById('nl-c').classList.add('act');}
+  else if(pg==='bc'){document.getElementById('pg-bc').classList.add('on');document.getElementById('nl-b').classList.add('act');renderBC();}
+  else if(pg==='fi'){
+    document.getElementById('pg-fi').classList.add('on');
+    document.getElementById('nav-back').style.display='flex';
+    document.getElementById('nav-bc').style.display='flex';
+    if(id)loadFi(id);
+  }
+}
+function goB(br){cBr=br;go('comp');document.querySelectorAll('#f-brs .fb-btn').forEach(b=>{b.classList.toggle('bon',b.dataset.b===br);b.classList.remove('on')});renderC();}
+
+// ── FILTRES COMP ──
+const CATS=[{k:'all',l:'Tous'},{k:'smartphone',l:'📱 Smartphones'},{k:'tablette',l:'📟 Tablettes'},{k:'laptop',l:'💻 Laptops'},{k:'montre',l:'⌚ Montres'},{k:'audio',l:'🎧 Audio'},{k:'gaming',l:'🎮 Gaming'},{k:'tv',l:'📺 TV'},{k:'desktop',l:'🖥️ Desktop'}];
+const BRS=['all','Apple','Samsung','Bose','JBL','Sony','Nintendo','ASUS','Xbox'];
+function buildFilters(){
+  const cc=document.getElementById('f-cats');
+  CATS.forEach(c=>{const b=document.createElement('button');b.className='fb-btn'+(c.k==='all'?' on':'');b.textContent=c.l;b.onclick=()=>{cCat=c.k;cc.querySelectorAll('.fb-btn').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderC()};cc.appendChild(b)});
+  const cb=document.getElementById('f-brs');
+  BRS.forEach(br=>{const b=document.createElement('button');b.className='fb-btn'+(br==='all'?' on':'');b.textContent=br==='all'?'Toutes':br;b.dataset.b=br;b.onclick=()=>{cBr=br;cb.querySelectorAll('.fb-btn').forEach(x=>{x.classList.remove('on');x.classList.remove('bon')});b.classList.add('bon');renderC()};cb.appendChild(b)});
+}
+
+// ── RENDER COMP ──
+function renderC(){
+  const q=(document.getElementById('c-q').value||'').toLowerCase();
+  const s=document.getElementById('c-s').value;
+  let list=P.filter(p=>(cCat==='all'||p.cat===cCat)&&(cBr==='all'||p.br===cBr)&&(!q||p.n.toLowerCase().includes(q)||p.br.toLowerCase().includes(q)));
+  if(s==='asc')list.sort((a,b)=>minP(a)-minP(b));
+  else if(s==='desc')list.sort((a,b)=>minP(b)-minP(a));
+  else if(s==='eco')list.sort((a,b)=>eco(b)-eco(a));
+  document.getElementById('kp-n').textContent=list.length;
+  const me=list.length?Math.max(...list.map(eco)):0;
+  document.getElementById('kp-e').textContent=me?'−'+me+'€':'−€';
+  const g=document.getElementById('prod-g');
+  if(!list.length){g.innerHTML='<div class="nores">Aucun produit trouvé</div>';return;}
+  g.innerHTML=list.map(p=>{
+    const sp=[...p.prices].sort((a,b)=>a.p-b.p);
+    const sv=eco(p);
+    const bc=p.b==='new'?'bdg-n':p.b==='pop'?'bdg-p':'bdg-d';
+    const bl=p.b==='new'?'Nouveau':p.b==='pop'?'Populaire':'Bon plan';
+    const rows=sp.map((s,i)=>{
+      const sh=SH[s.k];
+      const cls=i===0?'p-best':i===sp.length-1?'p-hi':'';
+      const et=i===0&&sv>0?`<span class="eco-t">−${sv}€</span>`:'';
+      return `<div class="pc-row"><div class="pc-si"><div class="pc-logo" style="background:${sh.bg};color:${sh.c}">${sh.ab}</div><span class="pc-sn">${sh.n}</span></div><div style="display:flex;align-items:center"><span class="pc-p ${cls}">${s.p}€</span>${et}</div></div>`;
+    }).join('');
+    return `<div class="pc" onclick="go('fi','${p.id}')">
+      <div class="pc-img">${p.em}</div>
+      <div class="pc-b">
+        <div class="pc-brand">${p.br}</div>
+        <div class="pc-name">${p.n}</div>
+        <div style="margin-bottom:7px"><span class="bdg ${bc}">${bl}</span></div>
+        <div class="pc-pr">${rows}</div>
+        <button class="pc-btn" onclick="event.stopPropagation();go('fi','${p.id}')">Voir la fiche →</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── COMP MARQUES ──
+function renderBC(){
+  const a=document.getElementById('bc-a').value;
+  const b=document.getElementById('bc-b').value;
+  const da=BD[a]||{},db=BD[b]||{};
+  const row=(crit,va,vb)=>`<tr><td class="crit">${crit}</td><td>${va}</td><td>${vb}</td></tr>`;
+  const plist=(arr,cls)=>(arr||[]).map(x=>`<div class="${cls}" style="font-size:12px;margin-bottom:3px">${cls==='g'?'✓':'✗'} ${x}</div>`).join('');
+  const prodlist=br=>P.filter(p=>p.br===br).slice(0,4).map(p=>`<div onclick="go('fi','${p.id}')" style="cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:7px;padding:6px 9px;background:var(--bg4);border-radius:8px"><span style="font-size:18px">${p.em}</span><div><div style="font-size:11px;font-weight:700;color:#fff">${p.n}</div><div style="font-size:11px;color:var(--gn2)">dès ${minP(p).toLocaleString('fr-FR')}€</div></div></div>`).join('');
+  document.getElementById('bc-res').innerHTML=`
+  <table class="ct">
+    <thead><tr><th>Critère</th><td class="ct-hdr">${a}</td><td class="ct-hdr">${b}</td></tr></thead>
+    <tbody>
+      ${row('Positionnement',da.eco||'—',db.eco||'—')}
+      ${row('Note moyenne',`${da.r||'—'}/5 ⭐`,`${db.r||'—'}/5 ⭐`)}
+      ${row('Fourchette de prix',da.pr||'—',db.pr||'—')}
+      ${row('Catégories',da.cats||'—',db.cats||'—')}
+      <tr><td class="crit">Points forts</td><td>${plist(da.pros,'g')}</td><td>${plist(db.pros,'g')}</td></tr>
+      <tr><td class="crit">Points faibles</td><td>${plist(da.cons,'b')}</td><td>${plist(db.cons,'b')}</td></tr>
+      <tr><td class="crit">Produits phares</td><td style="vertical-align:top">${prodlist(a)}</td><td style="vertical-align:top">${prodlist(b)}</td></tr>
+    </tbody>
+  </table>`;
+}
+
+// ── FICHE ──
+function loadFi(id){
+  const p=PM[id];if(!p){go('comp');return;}
+  curP=p;
+  document.getElementById('f-em').textContent=p.em;
+  const bc=p.b==='new'?'bdg-n':p.b==='pop'?'bdg-p':'bdg-d';
+  const bl=p.b==='new'?'Nouveau':p.b==='pop'?'Populaire':'Bon plan';
+  document.getElementById('f-bdg').innerHTML=`<span class="bdg ${bc}">${bl}</span>`;
+  document.getElementById('f-brand').textContent=p.br;
+  document.getElementById('f-name').textContent=p.n;
+  document.getElementById('bc-cat').textContent=p.cat.charAt(0).toUpperCase()+p.cat.slice(1)+'s';
+  document.getElementById('bc-nm').textContent=p.n.split(' ').slice(0,4).join(' ');
+  const sp=[...p.prices].sort((a,b)=>a.p-b.p);
+  const best=sp[0],worst=sp[sp.length-1],sv=eco(p);
+  const sh=SH[best.k];
+  document.getElementById('f-bp').textContent=best.p.toLocaleString('fr-FR')+'€';
+  document.getElementById('f-bsh').textContent='sur '+sh.n;
+  document.getElementById('f-eco').innerHTML=sv>0?`🏷️ Économisez ${sv}€ vs ${SH[worst.k].n}`:'Prix identique sur tous les marchands';
+  document.getElementById('f-buy').textContent='Voir l\'offre '+sh.n+' →';
+  document.getElementById('f-pills').innerHTML=`<span class="pill">${p.cat}</span><span class="pill">🇫🇷 France</span><span class="pill">✅ ${p.prices.length} marchands</span>`;
+  document.getElementById('f-r').textContent=p.r;
+  document.getElementById('f-rc').textContent=p.rc.toLocaleString('fr-FR')+' avis';
+  const fs=Math.floor(p.r),fh=p.r%1>=.5;
+  document.getElementById('f-stars').innerHTML=Array.from({length:5},(_,i)=>`<span style="font-size:15px;opacity:${i<fs?1:i===fs&&fh?.55:.18}">⭐</span>`).join('');
+  document.getElementById('f-bars').innerHTML=p.bars.map(b=>`<div class="rb-row"><span class="rb-n">${b.n}</span><div class="rb-t"><div class="rb-f" style="width:${b.p}%"></div></div><span class="rb-p">${b.p}%</span></div>`).join('');
+  document.getElementById('f-specs').innerHTML=p.specs.map(s=>`<div class="sp"><div class="sp-l">${s.l}</div><div class="sp-v">${s.v}</div></div>`).join('');
+  document.getElementById('f-pt').innerHTML=sp.map((s,i)=>{
+    const sh2=SH[s.k];
+    const cls=i===0?'pt-best':i===sp.length-1?'pt-hi':'pt-mid';
+    return `<tr><td><div class="pt-shop"><div class="pt-logo" style="background:${sh2.bg};color:${sh2.c}">${sh2.ab}</div><span class="pt-n">${sh2.n}</span></div></td><td><span class="pt-p ${cls}">${s.p.toLocaleString('fr-FR')}€</span></td><td style="font-size:11px;color:var(--gr2)">${s.d}</td><td>${i===0?'<span class="pt-bdg">✓ Meilleur prix</span>':''}</td><td><button class="pt-btn${i===0?' top':''}">${i===0?'Acheter →':'Voir'}</button></td></tr>`;
+  }).join('');
+  buildChart(p,6);
+  document.getElementById('f-revs').innerHTML=p.reviews.map(r=>`<div class="rv"><div class="rv-top"><div class="rv-u"><div class="rv-av" style="background:${r.ab};color:${r.ac}">${r.av}</div><div><div class="rv-nm">${r.nm}</div><div class="rv-d">${r.d}</div></div></div><div>${'<span style="font-size:13px">⭐</span>'.repeat(r.r)}</div></div><div class="rv-t">${r.t}</div><div class="rv-b">${r.b}</div><div class="rv-ok">✓ Achat vérifié · Source : ${r.s}</div></div>`).join('');
+  document.getElementById('f-sim').innerHTML=(p.sim||[]).map(sid=>{const sp2=PM[sid];if(!sp2)return'';return`<div class="smc" onclick="go('fi','${sid}')"><span class="sm-em">${sp2.em}</span><div class="sm-n">${sp2.n}</div><div class="sm-p">dès ${minP(sp2).toLocaleString('fr-FR')}€</div></div>`;}).join('');
+  const ab=document.getElementById('f-al');ab.textContent='🔔 M\'alerter si le prix baisse';ab.style.borderColor='';ab.style.color='';
+}
+
+function buildChart(p,months){
+  const now=new Date(),lbl=[],dAZ=[],dFN=[],dBest=[];
+  const base=minP(p);
+  const steps=Math.min(months*4,24);
+  for(let i=steps;i>=0;i--){
+    const d=new Date(now-i*(months*30/steps)*86400000);
+    lbl.push(d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'}));
+    const n=()=>Math.round((Math.random()-.38)*base*.1);
+    const az=Math.max(base*0.85,base+n()),fn=Math.max(base,base+55+n());
+    dAZ.push(az);dFN.push(fn);dBest.push(Math.min(az,fn));
+  }
+  const all=[...dAZ,...dFN];
+  const lo=Math.min(...all),hi=Math.max(...all),avg=Math.round(all.reduce((a,b)=>a+b,0)/all.length);
+  const curr=dAZ[dAZ.length-1],diff=curr-avg;
+  document.getElementById('ci-lo').textContent=lo.toLocaleString('fr-FR')+'€';
+  document.getElementById('ci-hi').textContent=hi.toLocaleString('fr-FR')+'€';
+  const vel=document.getElementById('ci-vs');vel.textContent=(diff>0?'+':'')+diff+'€';vel.className='ci-v '+(diff<=0?'g':'w');
+  if(chartI)chartI.destroy();
+  chartI=new Chart(document.getElementById('f-ch').getContext('2d'),{
+    type:'line',
+    data:{labels:lbl,datasets:[
+      {label:'Amazon',data:dAZ,borderColor:'#FF9900',backgroundColor:'rgba(255,153,0,.06)',borderWidth:2,pointRadius:0,tension:.4,fill:true},
+      {label:'Fnac',data:dFN,borderColor:'#FFD600',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.4},
+      {label:'Meilleur prix',data:dBest,borderColor:'#4CAF50',borderDash:[5,4],borderWidth:1.5,pointRadius:0,tension:.4},
+    ]},
+    options:{responsive:true,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{color:'#888',font:{family:'DM Sans',size:11},boxWidth:14,padding:10}},
+        tooltip:{backgroundColor:'#1A1A1A',titleColor:'#FFF',bodyColor:'#AAA',borderColor:'rgba(255,255,255,.08)',borderWidth:1,callbacks:{label:c=>` ${c.dataset.label} : ${c.parsed.y.toLocaleString('fr-FR')}€`}}},
+      scales:{x:{ticks:{color:'#555',font:{size:10},maxTicksLimit:7},grid:{color:'rgba(255,255,255,.03)'}},y:{ticks:{color:'#555',font:{size:10},callback:v=>v.toLocaleString('fr-FR')+'€'},grid:{color:'rgba(255,255,255,.03)'},suggestedMin:lo*0.97,suggestedMax:hi*1.03}}}
+  });
+}
+
+function reChart(m,btn){document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');if(curP)buildChart(curP,m);}
+function toggleAl(btn){const on=btn.textContent.includes('alerter');btn.textContent=on?'✓ Alerte activée !':'🔔 M\'alerter si le prix baisse';btn.style.borderColor=on?'var(--gold)':'';btn.style.color=on?'var(--gold)':'';}
+function subAlert(){const e=document.getElementById('al-email').value;if(!e||!e.includes('@'))return;document.getElementById('al-email').value='';alert('✓ Alerte activée pour '+e+' !');}
+
+// ── HOME ──
+function buildDeals(){
+  const deals=P.filter(p=>eco(p)>=150).sort((a,b)=>eco(b)-eco(a)).slice(0,6);
+  const me=P.reduce((m,p)=>Math.max(m,eco(p)),0);
+  document.getElementById('hs-eco').textContent='−'+me+'€';
+  document.getElementById('h-deals').innerHTML=deals.map(p=>{
+    const sp=[...p.prices].sort((a,b)=>a.p-b.p);
+    const sv=eco(p);
+    const rows=sp.map((s,i)=>`<div class="dc-row"><span class="dc-sh">${SH[s.k].n}</span><span class="${i===0?'p-best':i===sp.length-1?'p-hi':''}" style="font-weight:${i===0?700:400}">${s.p.toLocaleString('fr-FR')}€</span></div>`).join('');
+    return `<div class="dc" onclick="go('fi','${p.id}')">
+      <span class="dc-em">${p.em}</span>
+      <div class="dc-br">${p.br}</div>
+      <div class="dc-n">${p.n}</div>
+      <div class="dc-rows">${rows}</div>
+      <div class="eco-pill">🏷️ Économisez ${sv}€ — Voir la fiche →</div>
+    </div>`;
+  }).join('');
+}
+
+function buildTicker(){
+  const items=P.slice(0,20).map(p=>`<div class="ti">${p.n} dès ${minP(p).toLocaleString('fr-FR')}€</div>`);
+  document.getElementById('ticker').innerHTML=[...items,...items].join('');
+}
+
+buildFilters();renderC();buildDeals();buildTicker();
+</script>
+</body>
+</html>
